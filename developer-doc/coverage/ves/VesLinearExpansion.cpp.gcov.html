@@ -1,0 +1,421 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - ves/VesLinearExpansion.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">ves</a> - VesLinearExpansion.cpp<span style="font-size: 80%;"> (source / <a href="VesLinearExpansion.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">154</td>
+            <td class="headerCovTableEntry">158</td>
+            <td class="headerCovTableEntryHi">97.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">22</td>
+            <td class="headerCovTableEntry">24</td>
+            <td class="headerCovTableEntryHi">91.7 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2016-2017 The ves-code team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE-VES file at the root of this folder for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.ves-code.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of ves-code, version 1.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    ves-code is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    ves-code is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with ves-code.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : #include &quot;VesBias.h&quot;
+<span class="lineNum">      24 </span>            : #include &quot;LinearBasisSetExpansion.h&quot;
+<span class="lineNum">      25 </span>            : #include &quot;CoeffsVector.h&quot;
+<span class="lineNum">      26 </span>            : #include &quot;CoeffsMatrix.h&quot;
+<span class="lineNum">      27 </span>            : #include &quot;BasisFunctions.h&quot;
+<span class="lineNum">      28 </span>            : #include &quot;Optimizer.h&quot;
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : #include &quot;bias/Bias.h&quot;
+<span class="lineNum">      31 </span>            : #include &quot;core/ActionRegister.h&quot;
+<span class="lineNum">      32 </span>            : #include &quot;core/ActionSet.h&quot;
+<span class="lineNum">      33 </span>            : #include &quot;core/PlumedMain.h&quot;
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : namespace PLMD{
+<span class="lineNum">      37 </span>            : namespace ves{
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : //+PLUMEDOC VES_BIASES VES_LINEAR_EXPANSION
+<span class="lineNum">      40 </span>            : /*
+<span class="lineNum">      41 </span>            : Linear basis set expansion bias.
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            : This bias action takes the bias potential to be a linear expansion in some basis set that is written as a product of one-dimensional basis functions. For example, for one CV the bias would be written as
+<span class="lineNum">      44 </span>            : \f[
+<span class="lineNum">      45 </span>            : V(s_{1};\boldsymbol{\alpha}) = \sum_{i_{1}} \alpha_{i_{1}} \, f_{i_{1}}(s_{1}),
+<span class="lineNum">      46 </span>            : \f]
+<span class="lineNum">      47 </span>            : while for two CVs it is written as
+<span class="lineNum">      48 </span>            : \f[
+<span class="lineNum">      49 </span>            : V(s_{1},s_{2};\boldsymbol{\alpha}) = \sum_{i_{1},i_{2}} \alpha_{i_{1},i_{2}} \, f_{i_{1}}(s_{1}) \, f_{i_{2}}(s_{2})
+<span class="lineNum">      50 </span>            : \f]
+<span class="lineNum">      51 </span>            : where \f$\boldsymbol{\alpha}\f$ is the set of expansion coefficients that are optimized within VES. With an appropriate choice of the basis functions it is possible to represent any generic free energy surface. The relationship between the bias and the free energy surface is given by
+<span class="lineNum">      52 </span>            : \f[
+<span class="lineNum">      53 </span>            : V(\mathbf{s}) = - F(\mathbf{s}) - \frac{1}{\beta} \log p(\mathbf{s}).
+<span class="lineNum">      54 </span>            : \f]
+<span class="lineNum">      55 </span>            : where \f$p(\mathbf{s})\f$ is the target distribution that is employed in the VES simulation.
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            : \par Basis Functions
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            : Various one-dimensional basis functions are available in the VES code, see the complete list \ref ves_basisf &quot;here&quot;. At the current moment we recommend to use \ref BF_LEGENDRE &quot;legendre polynomicals&quot; for non-periodic CVs and \ref BF_FOURIER &quot;Fourier basis functions&quot; for periodic CV (e.g. dihedral angles).
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span>            : To use these basis functions within VES_LINEAR_EXPANSION do you first need to
+<span class="lineNum">      63 </span>            : define them in the input file before the VES_LINEAR_EXPANSION action and
+<span class="lineNum">      64 </span>            : then give their labels using the BASIS_FUNCTIONS keyword.
+<span class="lineNum">      65 </span>            : 
+<span class="lineNum">      66 </span>            : \par Target Distributions
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span>            : The default option is to employ a uniform target distribution.
+<span class="lineNum">      69 </span>            : Various other target distributions \f$p(\mathbf{s})\f$ are available in the VES code,
+<span class="lineNum">      70 </span>            : see the complete list \ref ves_targetdist &quot;here&quot;.
+<span class="lineNum">      71 </span>            : To use any of these target distribution you need to
+<span class="lineNum">      72 </span>            : use the TARGET_DISTRIBUTION keyword where the keyword relevant to the
+<span class="lineNum">      73 </span>            : target distribution are enclosed within curly brackets.
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            : \par Examples
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            : */
+<span class="lineNum">      79 </span>            : //+ENDPLUMEDOC
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span>            : class VesLinearExpansion : public VesBias{
+<span class="lineNum">      83 </span>            : private:
+<span class="lineNum">      84 </span>            :   unsigned int nargs_;
+<span class="lineNum">      85 </span>            :   std::vector&lt;BasisFunctions*&gt; basisf_pntrs_;
+<span class="lineNum">      86 </span>            :   LinearBasisSetExpansion* bias_expansion_pntr_;
+<span class="lineNum">      87 </span>            :   size_t ncoeffs_;
+<span class="lineNum">      88 </span>            :   Value* valueForce2_;
+<span class="lineNum">      89 </span>            : public:
+<span class="lineNum">      90 </span>            :   explicit VesLinearExpansion(const ActionOptions&amp;);
+<span class="lineNum">      91 </span>            :   ~VesLinearExpansion();
+<span class="lineNum">      92 </span>            :   void calculate();
+<span class="lineNum">      93 </span>            :   void updateTargetDistributions();
+<span class="lineNum">      94 </span>            :   void restartTargetDistributions();
+<span class="lineNum">      95 </span>            :   //
+<span class="lineNum">      96 </span>            :   void setupBiasFileOutput();
+<span class="lineNum">      97 </span>            :   void writeBiasToFile();
+<span class="lineNum">      98 </span>            :   void resetBiasFileOutput();
+<span class="lineNum">      99 </span>            :   //
+<span class="lineNum">     100 </span>            :   void setupFesFileOutput();
+<span class="lineNum">     101 </span>            :   void writeFesToFile();
+<span class="lineNum">     102 </span>            :   void resetFesFileOutput();
+<span class="lineNum">     103 </span>            :   //
+<span class="lineNum">     104 </span>            :   void setupFesProjFileOutput();
+<span class="lineNum">     105 </span>            :   void writeFesProjToFile();
+<span class="lineNum">     106 </span>            :   //
+<span class="lineNum">     107 </span>            :   void writeTargetDistToFile();
+<span class="lineNum">     108 </span>            :   void writeTargetDistProjToFile();
+<span class="lineNum">     109 </span>            :   static void registerKeywords( Keywords&amp; keys );
+<a name="110"><span class="lineNum">     110 </span>            : };</a>
+<span class="lineNum">     111 </span>            : 
+<a name="112"><span class="lineNum">     112 </span><span class="lineCov">       4063 : PLUMED_REGISTER_ACTION(VesLinearExpansion,&quot;VES_LINEAR_EXPANSION&quot;)</span></a>
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span><span class="lineCov">         51 : void VesLinearExpansion::registerKeywords( Keywords&amp; keys ){</span>
+<span class="lineNum">     115 </span><span class="lineCov">         51 :   VesBias::registerKeywords(keys);</span>
+<span class="lineNum">     116 </span>            :   //
+<span class="lineNum">     117 </span><span class="lineCov">         51 :   VesBias::useInitialCoeffsKeywords(keys);</span>
+<span class="lineNum">     118 </span><span class="lineCov">         51 :   VesBias::useTargetDistributionKeywords(keys);</span>
+<span class="lineNum">     119 </span><span class="lineCov">         51 :   VesBias::useBiasCutoffKeywords(keys);</span>
+<span class="lineNum">     120 </span><span class="lineCov">         51 :   VesBias::useGridBinKeywords(keys);</span>
+<span class="lineNum">     121 </span><span class="lineCov">         51 :   VesBias::useProjectionArgKeywords(keys);</span>
+<span class="lineNum">     122 </span>            :   //
+<span class="lineNum">     123 </span><span class="lineCov">         51 :   keys.use(&quot;ARG&quot;);</span>
+<span class="lineNum">     124 </span><span class="lineCov">         51 :   keys.add(&quot;compulsory&quot;,&quot;BASIS_FUNCTIONS&quot;,&quot;the label of the basis sets that you want to use&quot;);</span>
+<span class="lineNum">     125 </span><span class="lineCov">         51 :   keys.addOutputComponent(&quot;force2&quot;,&quot;default&quot;,&quot;the instantaneous value of the squared force due to this bias potential.&quot;);</span>
+<a name="126"><span class="lineNum">     126 </span><span class="lineCov">         51 : }</span></a>
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span><span class="lineCov">         49 : VesLinearExpansion::VesLinearExpansion(const ActionOptions&amp;ao):</span>
+<span class="lineNum">     129 </span>            : PLUMED_VESBIAS_INIT(ao),
+<span class="lineNum">     130 </span><span class="lineCov">         49 : nargs_(getNumberOfArguments()),</span>
+<span class="lineNum">     131 </span><span class="lineCov">         49 : basisf_pntrs_(getNumberOfArguments(),NULL),</span>
+<span class="lineNum">     132 </span>            : bias_expansion_pntr_(NULL),
+<span class="lineNum">     133 </span><span class="lineCov">        147 : valueForce2_(NULL)</span>
+<span class="lineNum">     134 </span>            : {
+<span class="lineNum">     135 </span><span class="lineCov">         49 :   std::vector&lt;std::string&gt; basisf_labels;</span>
+<span class="lineNum">     136 </span><span class="lineCov">         49 :   parseMultipleValues(&quot;BASIS_FUNCTIONS&quot;,basisf_labels,nargs_);</span>
+<span class="lineNum">     137 </span><span class="lineCov">         49 :   checkRead();</span>
+<span class="lineNum">     138 </span>            : 
+<span class="lineNum">     139 </span><span class="lineCov">        111 :   for(unsigned int i=0; i&lt;basisf_labels.size(); i++){</span>
+<span class="lineNum">     140 </span><span class="lineCov">         62 :     basisf_pntrs_[i] = plumed.getActionSet().selectWithLabel&lt;BasisFunctions*&gt;(basisf_labels[i]);</span>
+<span class="lineNum">     141 </span><span class="lineCov">         62 :     plumed_massert(basisf_pntrs_[i]!=NULL,&quot;basis function &quot;+basisf_labels[i]+&quot; does not exist. NOTE: the basis functions should always be defined BEFORE the VES bias.&quot;);</span>
+<span class="lineNum">     142 </span>            :   }
+<span class="lineNum">     143 </span>            :   //
+<span class="lineNum">     144 </span><span class="lineCov">         98 :   std::vector&lt;Value*&gt; args_pntrs = getArguments();</span>
+<span class="lineNum">     145 </span>            :   // check arguments and basis functions
+<span class="lineNum">     146 </span>            :   // this is done to avoid some issues with integration of target distribution
+<span class="lineNum">     147 </span>            :   // and periodic CVs, needs to be fixed later on.
+<span class="lineNum">     148 </span><span class="lineCov">        111 :   for(unsigned int i=0; i&lt;args_pntrs.size(); i++){</span>
+<span class="lineNum">     149 </span><span class="lineCov">         62 :     if(args_pntrs[i]-&gt;isPeriodic() &amp;&amp; !(basisf_pntrs_[i]-&gt;arePeriodic()) ){</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :       plumed_merror(&quot;argument &quot;+args_pntrs[i]-&gt;getName()+&quot; is periodic while the basis functions &quot; + basisf_pntrs_[i]-&gt;getLabel()+ &quot; are not. You need to use the COMBINE action to remove the periodicity of the argument if you want to use these basis functions&quot;);</span>
+<span class="lineNum">     151 </span>            :     }
+<span class="lineNum">     152 </span><span class="lineCov">         62 :     else if(!(args_pntrs[i]-&gt;isPeriodic()) &amp;&amp; basisf_pntrs_[i]-&gt;arePeriodic() ){</span>
+<span class="lineNum">     153 </span><span class="lineCov">          1 :       log.printf(&quot;  warning: argument %s is not periodic while the basis functions %s used for it are periodic\n&quot;,args_pntrs[i]-&gt;getName().c_str(),basisf_pntrs_[i]-&gt;getLabel().c_str());</span>
+<span class="lineNum">     154 </span>            :     }
+<span class="lineNum">     155 </span>            :   }
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span><span class="lineCov">         49 :   addCoeffsSet(args_pntrs,basisf_pntrs_);</span>
+<span class="lineNum">     158 </span><span class="lineCov">         49 :   ncoeffs_ = numberOfCoeffs();</span>
+<span class="lineNum">     159 </span><span class="lineCov">         49 :   bool coeffs_read = readCoeffsFromFiles();</span>
+<span class="lineNum">     160 </span>            : 
+<span class="lineNum">     161 </span><span class="lineCov">         49 :   checkThatTemperatureIsGiven();</span>
+<span class="lineNum">     162 </span><span class="lineCov">         49 :   bias_expansion_pntr_ = new LinearBasisSetExpansion(getLabel(),getBeta(),comm,args_pntrs,basisf_pntrs_,getCoeffsPntr());</span>
+<span class="lineNum">     163 </span><span class="lineCov">         49 :   bias_expansion_pntr_-&gt;linkVesBias(this);</span>
+<span class="lineNum">     164 </span><span class="lineCov">         49 :   bias_expansion_pntr_-&gt;setGridBins(this-&gt;getGridBins());</span>
+<span class="lineNum">     165 </span>            :   //
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span><span class="lineCov">         49 :   if(biasCutoffActive()){</span>
+<span class="lineNum">     168 </span><span class="lineCov">          3 :     std::vector&lt;std::string&gt; keywords(1);</span>
+<span class="lineNum">     169 </span><span class="lineCov">          6 :     std::string s1; Tools::convert(getBiasCutoffValue(),s1);</span>
+<span class="lineNum">     170 </span><span class="lineCov">          3 :     if(getNumberOfTargetDistributionKeywords()==0){</span>
+<span class="lineNum">     171 </span><span class="lineCov">          3 :       keywords[0]=&quot;UNIFORM BIAS_CUTOFF=&quot;+s1;</span>
+<span class="lineNum">     172 </span>            :     }
+<span class="lineNum">     173 </span>            :     else{
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :       keywords = getTargetDistributionKeywords();</span>
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 :       keywords[0]+=&quot; BIAS_CUTOFF=&quot;+s1;</span>
+<span class="lineNum">     176 </span>            :     }
+<span class="lineNum">     177 </span><span class="lineCov">          6 :     setTargetDistributionKeywords(keywords);</span>
+<span class="lineNum">     178 </span>            :   }
+<span class="lineNum">     179 </span>            : 
+<span class="lineNum">     180 </span><span class="lineCov">         49 :   if(getNumberOfTargetDistributionKeywords()==0){</span>
+<span class="lineNum">     181 </span><span class="lineCov">         18 :     log.printf(&quot;  using an uniform target distribution: \n&quot;);</span>
+<span class="lineNum">     182 </span><span class="lineCov">         18 :     bias_expansion_pntr_-&gt;setupUniformTargetDistribution();</span>
+<span class="lineNum">     183 </span>            :   }
+<span class="lineNum">     184 </span><span class="lineCov">         31 :   else if(getNumberOfTargetDistributionKeywords()==1){</span>
+<span class="lineNum">     185 </span><span class="lineCov">         31 :     bias_expansion_pntr_-&gt;setupTargetDistribution(getTargetDistributionKeywords()[0]);</span>
+<span class="lineNum">     186 </span>            :     // updateTargetDistributions();
+<span class="lineNum">     187 </span><span class="lineCov">         31 :     log.printf(&quot;  using the following target distribution:\n   %s\n&quot;,getTargetDistributionKeywords()[0].c_str());</span>
+<span class="lineNum">     188 </span>            :   }
+<span class="lineNum">     189 </span>            :   else {
+<span class="lineNum">     190 </span><span class="lineNoCov">          0 :     plumed_merror(&quot;problem with the TARGET_DISTRIBUTION keyword, either give no keyword or just one keyword&quot;);</span>
+<span class="lineNum">     191 </span>            :   }
+<span class="lineNum">     192 </span><span class="lineCov">         49 :   setTargetDistAverages(bias_expansion_pntr_-&gt;TargetDistAverages());</span>
+<span class="lineNum">     193 </span>            :   //
+<span class="lineNum">     194 </span><span class="lineCov">         49 :   if(coeffs_read &amp;&amp; biasCutoffActive()){</span>
+<span class="lineNum">     195 </span><span class="lineCov">          1 :     updateTargetDistributions();</span>
+<span class="lineNum">     196 </span>            :   }
+<span class="lineNum">     197 </span>            :   //
+<span class="lineNum">     198 </span><span class="lineCov">         49 :   if(coeffs_read){</span>
+<span class="lineNum">     199 </span><span class="lineCov">          2 :     setupBiasFileOutput();</span>
+<span class="lineNum">     200 </span><span class="lineCov">          2 :     writeBiasToFile();</span>
+<span class="lineNum">     201 </span>            :   }
+<span class="lineNum">     202 </span>            : 
+<span class="lineNum">     203 </span><span class="lineCov">         49 :   addComponent(&quot;force2&quot;); componentIsNotPeriodic(&quot;force2&quot;);</span>
+<span class="lineNum">     204 </span><span class="lineCov">         98 :   valueForce2_=getPntrToComponent(&quot;force2&quot;);</span>
+<span class="lineNum">     205 </span><span class="lineCov">         49 : }</span>
+<a name="206"><span class="lineNum">     206 </span>            : </a>
+<span class="lineNum">     207 </span>            : 
+<span class="lineNum">     208 </span><span class="lineCov">        196 : VesLinearExpansion::~VesLinearExpansion() {</span>
+<span class="lineNum">     209 </span><span class="lineCov">         49 :   if(bias_expansion_pntr_!=NULL){</span>
+<span class="lineNum">     210 </span><span class="lineCov">         49 :     delete bias_expansion_pntr_;</span>
+<span class="lineNum">     211 </span>            :   }
+<span class="lineNum">     212 </span><span class="lineCov">        147 : }</span>
+<a name="213"><span class="lineNum">     213 </span>            : </a>
+<span class="lineNum">     214 </span>            : 
+<span class="lineNum">     215 </span><span class="lineCov">       1029 : void VesLinearExpansion::calculate() {</span>
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span><span class="lineCov">       1029 :   std::vector&lt;double&gt; cv_values(nargs_);</span>
+<span class="lineNum">     218 </span><span class="lineCov">       2058 :   std::vector&lt;double&gt; forces(nargs_);</span>
+<span class="lineNum">     219 </span><span class="lineCov">       2058 :   std::vector&lt;double&gt; coeffsderivs_values(ncoeffs_);</span>
+<span class="lineNum">     220 </span>            : 
+<span class="lineNum">     221 </span><span class="lineCov">       2331 :   for(unsigned int k=0; k&lt;nargs_; k++){</span>
+<span class="lineNum">     222 </span><span class="lineCov">       1302 :     cv_values[k]=getArgument(k);</span>
+<span class="lineNum">     223 </span>            :   }
+<span class="lineNum">     224 </span>            : 
+<span class="lineNum">     225 </span><span class="lineCov">       1029 :   bool all_inside = true;</span>
+<span class="lineNum">     226 </span><span class="lineCov">       1029 :   double bias = bias_expansion_pntr_-&gt;getBiasAndForces(cv_values,all_inside,forces,coeffsderivs_values);</span>
+<span class="lineNum">     227 </span><span class="lineCov">       1029 :   if(biasCutoffActive()){</span>
+<span class="lineNum">     228 </span><span class="lineCov">         63 :     applyBiasCutoff(bias,forces,coeffsderivs_values);</span>
+<span class="lineNum">     229 </span><span class="lineCov">         63 :     coeffsderivs_values[0]=1.0;</span>
+<span class="lineNum">     230 </span>            :   }
+<span class="lineNum">     231 </span><span class="lineCov">       1029 :   double totalForce2 = 0.0;</span>
+<span class="lineNum">     232 </span><span class="lineCov">       2331 :   for(unsigned int k=0; k&lt;nargs_; k++){</span>
+<span class="lineNum">     233 </span><span class="lineCov">       1302 :     setOutputForce(k,forces[k]);</span>
+<span class="lineNum">     234 </span><span class="lineCov">       1302 :     totalForce2 += forces[k]*forces[k];</span>
+<span class="lineNum">     235 </span>            :   }
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span><span class="lineCov">       1029 :   setBias(bias);</span>
+<span class="lineNum">     238 </span><span class="lineCov">       1029 :   valueForce2_-&gt;set(totalForce2);</span>
+<span class="lineNum">     239 </span><span class="lineCov">       1029 :   if(all_inside){</span>
+<span class="lineNum">     240 </span><span class="lineCov">        966 :     addToSampledAverages(coeffsderivs_values);</span>
+<span class="lineNum">     241 </span><span class="lineCov">       1029 :   }</span>
+<span class="lineNum">     242 </span><span class="lineCov">       1029 : }</span>
+<a name="243"><span class="lineNum">     243 </span>            : </a>
+<span class="lineNum">     244 </span>            : 
+<span class="lineNum">     245 </span><span class="lineCov">        261 : void VesLinearExpansion::updateTargetDistributions() {</span>
+<span class="lineNum">     246 </span><span class="lineCov">        261 :   bias_expansion_pntr_-&gt;updateTargetDistribution();</span>
+<span class="lineNum">     247 </span><span class="lineCov">        261 :   setTargetDistAverages(bias_expansion_pntr_-&gt;TargetDistAverages());</span>
+<span class="lineNum">     248 </span><span class="lineCov">        261 : }</span>
+<a name="249"><span class="lineNum">     249 </span>            : </a>
+<span class="lineNum">     250 </span>            : 
+<span class="lineNum">     251 </span><span class="lineCov">          6 : void VesLinearExpansion::restartTargetDistributions() {</span>
+<span class="lineNum">     252 </span><span class="lineCov">          6 :   bias_expansion_pntr_-&gt;readInRestartTargetDistribution(getCurrentTargetDistOutputFilename());</span>
+<span class="lineNum">     253 </span><span class="lineCov">          6 :   bias_expansion_pntr_-&gt;restartTargetDistribution();</span>
+<span class="lineNum">     254 </span><span class="lineCov">          6 :   setTargetDistAverages(bias_expansion_pntr_-&gt;TargetDistAverages());</span>
+<span class="lineNum">     255 </span><span class="lineCov">          6 : }</span>
+<a name="256"><span class="lineNum">     256 </span>            : </a>
+<span class="lineNum">     257 </span>            : 
+<span class="lineNum">     258 </span><span class="lineCov">         49 : void VesLinearExpansion::setupBiasFileOutput() {</span>
+<span class="lineNum">     259 </span><span class="lineCov">         49 :   bias_expansion_pntr_-&gt;setupBiasGrid(true);</span>
+<span class="lineNum">     260 </span><span class="lineCov">         49 : }</span>
+<a name="261"><span class="lineNum">     261 </span>            : </a>
+<span class="lineNum">     262 </span>            : 
+<span class="lineNum">     263 </span><span class="lineCov">         99 : void VesLinearExpansion::writeBiasToFile() {</span>
+<span class="lineNum">     264 </span><span class="lineCov">         99 :   bias_expansion_pntr_-&gt;updateBiasGrid();</span>
+<span class="lineNum">     265 </span><span class="lineCov">         99 :   OFile* ofile_pntr = getOFile(getCurrentBiasOutputFilename(),useMultipleWalkers());</span>
+<span class="lineNum">     266 </span><span class="lineCov">         99 :   bias_expansion_pntr_-&gt;writeBiasGridToFile(*ofile_pntr);</span>
+<span class="lineNum">     267 </span><span class="lineCov">         99 :   ofile_pntr-&gt;close(); delete ofile_pntr;</span>
+<span class="lineNum">     268 </span><span class="lineCov">         99 :   if(biasCutoffActive()){</span>
+<span class="lineNum">     269 </span><span class="lineCov">          5 :     bias_expansion_pntr_-&gt;updateBiasWithoutCutoffGrid();</span>
+<span class="lineNum">     270 </span><span class="lineCov">          5 :     OFile* ofile_pntr2 = getOFile(getCurrentBiasOutputFilename(&quot;without-cutoff&quot;),useMultipleWalkers());</span>
+<span class="lineNum">     271 </span><span class="lineCov">          5 :     bias_expansion_pntr_-&gt;writeBiasWithoutCutoffGridToFile(*ofile_pntr2);</span>
+<span class="lineNum">     272 </span><span class="lineCov">          5 :     ofile_pntr2-&gt;close(); delete ofile_pntr2;</span>
+<span class="lineNum">     273 </span>            :   }
+<span class="lineNum">     274 </span><span class="lineCov">         99 : }</span>
+<a name="275"><span class="lineNum">     275 </span>            : </a>
+<span class="lineNum">     276 </span>            : 
+<span class="lineNum">     277 </span><span class="lineCov">         12 : void VesLinearExpansion::resetBiasFileOutput() {</span>
+<span class="lineNum">     278 </span><span class="lineCov">         12 :   bias_expansion_pntr_-&gt;resetStepOfLastBiasGridUpdate();</span>
+<span class="lineNum">     279 </span><span class="lineCov">         12 : }</span>
+<a name="280"><span class="lineNum">     280 </span>            : </a>
+<span class="lineNum">     281 </span>            : 
+<span class="lineNum">     282 </span><span class="lineCov">         47 : void VesLinearExpansion::setupFesFileOutput() {</span>
+<span class="lineNum">     283 </span><span class="lineCov">         47 :   bias_expansion_pntr_-&gt;setupFesGrid();</span>
+<span class="lineNum">     284 </span><span class="lineCov">         47 : }</span>
+<a name="285"><span class="lineNum">     285 </span>            : </a>
+<span class="lineNum">     286 </span>            : 
+<span class="lineNum">     287 </span><span class="lineCov">         97 : void VesLinearExpansion::writeFesToFile() {</span>
+<span class="lineNum">     288 </span><span class="lineCov">         97 :   bias_expansion_pntr_-&gt;updateFesGrid();</span>
+<span class="lineNum">     289 </span><span class="lineCov">         97 :   OFile* ofile_pntr = getOFile(getCurrentFesOutputFilename(),useMultipleWalkers());</span>
+<span class="lineNum">     290 </span><span class="lineCov">         97 :   bias_expansion_pntr_-&gt;writeFesGridToFile(*ofile_pntr);</span>
+<span class="lineNum">     291 </span><span class="lineCov">         97 :   ofile_pntr-&gt;close(); delete ofile_pntr;</span>
+<span class="lineNum">     292 </span><span class="lineCov">         97 : }</span>
+<a name="293"><span class="lineNum">     293 </span>            : </a>
+<span class="lineNum">     294 </span>            : 
+<span class="lineNum">     295 </span><span class="lineCov">         12 : void VesLinearExpansion::resetFesFileOutput() {</span>
+<span class="lineNum">     296 </span><span class="lineCov">         12 :   bias_expansion_pntr_-&gt;resetStepOfLastFesGridUpdate();</span>
+<span class="lineNum">     297 </span><span class="lineCov">         12 : }</span>
+<a name="298"><span class="lineNum">     298 </span>            : </a>
+<span class="lineNum">     299 </span>            : 
+<span class="lineNum">     300 </span><span class="lineCov">          8 : void VesLinearExpansion::setupFesProjFileOutput() {</span>
+<span class="lineNum">     301 </span><span class="lineCov">          8 :   if(getNumberOfProjectionArguments()&gt;0){</span>
+<span class="lineNum">     302 </span><span class="lineCov">          5 :     bias_expansion_pntr_-&gt;setupFesProjGrid();</span>
+<span class="lineNum">     303 </span>            :   }
+<span class="lineNum">     304 </span><span class="lineCov">          8 : }</span>
+<a name="305"><span class="lineNum">     305 </span>            : </a>
+<span class="lineNum">     306 </span>            : 
+<span class="lineNum">     307 </span><span class="lineCov">         16 : void VesLinearExpansion::writeFesProjToFile() {</span>
+<span class="lineNum">     308 </span><span class="lineCov">         16 :   bias_expansion_pntr_-&gt;updateFesGrid();</span>
+<span class="lineNum">     309 </span><span class="lineCov">         36 :   for(unsigned int i=0; i&lt;getNumberOfProjectionArguments(); i++){</span>
+<span class="lineNum">     310 </span><span class="lineCov">         20 :     std::string suffix;</span>
+<span class="lineNum">     311 </span><span class="lineCov">         20 :     Tools::convert(i+1,suffix);</span>
+<span class="lineNum">     312 </span><span class="lineCov">         20 :     suffix = &quot;proj-&quot; + suffix;</span>
+<span class="lineNum">     313 </span><span class="lineCov">         20 :     OFile* ofile_pntr = getOFile(getCurrentFesOutputFilename(suffix),useMultipleWalkers());</span>
+<span class="lineNum">     314 </span><span class="lineCov">         40 :     std::vector&lt;std::string&gt; args = getProjectionArgument(i);</span>
+<span class="lineNum">     315 </span><span class="lineCov">         20 :     bias_expansion_pntr_-&gt;writeFesProjGridToFile(args,*ofile_pntr);</span>
+<span class="lineNum">     316 </span><span class="lineCov">         20 :     ofile_pntr-&gt;close(); delete ofile_pntr;</span>
+<span class="lineNum">     317 </span><span class="lineCov">         20 :   }</span>
+<span class="lineNum">     318 </span><span class="lineCov">         16 : }</span>
+<a name="319"><span class="lineNum">     319 </span>            : </a>
+<span class="lineNum">     320 </span>            : 
+<span class="lineNum">     321 </span><span class="lineCov">         73 : void VesLinearExpansion::writeTargetDistToFile() {</span>
+<span class="lineNum">     322 </span><span class="lineCov">         73 :   OFile* ofile1_pntr = getOFile(getCurrentTargetDistOutputFilename(),useMultipleWalkers());</span>
+<span class="lineNum">     323 </span><span class="lineCov">         73 :   OFile* ofile2_pntr = getOFile(getCurrentTargetDistOutputFilename(&quot;log&quot;),useMultipleWalkers());</span>
+<span class="lineNum">     324 </span><span class="lineCov">         73 :   bias_expansion_pntr_-&gt;writeTargetDistGridToFile(*ofile1_pntr);</span>
+<span class="lineNum">     325 </span><span class="lineCov">         73 :   bias_expansion_pntr_-&gt;writeLogTargetDistGridToFile(*ofile2_pntr);</span>
+<span class="lineNum">     326 </span><span class="lineCov">         73 :   ofile1_pntr-&gt;close(); delete ofile1_pntr;</span>
+<span class="lineNum">     327 </span><span class="lineCov">         73 :   ofile2_pntr-&gt;close(); delete ofile2_pntr;</span>
+<span class="lineNum">     328 </span><span class="lineCov">         73 : }</span>
+<a name="329"><span class="lineNum">     329 </span>            : </a>
+<span class="lineNum">     330 </span>            : 
+<span class="lineNum">     331 </span><span class="lineCov">         25 : void VesLinearExpansion::writeTargetDistProjToFile() {</span>
+<span class="lineNum">     332 </span><span class="lineCov">         39 :   for(unsigned int i=0; i&lt;getNumberOfProjectionArguments(); i++){</span>
+<span class="lineNum">     333 </span><span class="lineCov">         14 :     std::string suffix;</span>
+<span class="lineNum">     334 </span><span class="lineCov">         14 :     Tools::convert(i+1,suffix);</span>
+<span class="lineNum">     335 </span><span class="lineCov">         14 :     suffix = &quot;proj-&quot; + suffix;</span>
+<span class="lineNum">     336 </span><span class="lineCov">         14 :     OFile* ofile_pntr = getOFile(getCurrentTargetDistOutputFilename(suffix),useMultipleWalkers());</span>
+<span class="lineNum">     337 </span><span class="lineCov">         28 :     std::vector&lt;std::string&gt; args = getProjectionArgument(i);</span>
+<span class="lineNum">     338 </span><span class="lineCov">         14 :     bias_expansion_pntr_-&gt;writeTargetDistProjGridToFile(args,*ofile_pntr);</span>
+<span class="lineNum">     339 </span><span class="lineCov">         14 :     ofile_pntr-&gt;close(); delete ofile_pntr;</span>
+<span class="lineNum">     340 </span><span class="lineCov">         14 :   }</span>
+<span class="lineNum">     341 </span><span class="lineCov">         25 : }</span>
+<span class="lineNum">     342 </span>            : 
+<a name="343"><span class="lineNum">     343 </span>            : </a>
+<span class="lineNum">     344 </span>            : }
+<span class="lineNum">     345 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

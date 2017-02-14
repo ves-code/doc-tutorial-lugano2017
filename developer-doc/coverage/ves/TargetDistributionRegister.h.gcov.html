@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - ves/TargetDistributionRegister.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">ves</a> - TargetDistributionRegister.h<span style="font-size: 80%;"> (source / <a href="TargetDistributionRegister.h.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2016-2017 The ves-code team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE-VES file at the root of this folder for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.ves-code.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of ves-code, version 1.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    ves-code is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    ves-code is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with ves-code.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : #ifndef __PLUMED_ves_TargetDistributionRegister_h
+<span class="lineNum">      23 </span>            : #define __PLUMED_ves_TargetDistributionRegister_h
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            : #include &quot;TargetDistribution.h&quot;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : #include &lt;string&gt;
+<span class="lineNum">      28 </span>            : #include &lt;cstring&gt;
+<span class="lineNum">      29 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      30 </span>            : #include &lt;map&gt;
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : namespace PLMD{
+<span class="lineNum">      34 </span>            : namespace ves{
+<span class="lineNum">      35 </span>            : 
+<a name="36"><span class="lineNum">      36 </span>            : </a>
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span><span class="lineCov">       1338 : class TargetDistributionRegister{</span>
+<span class="lineNum">      39 </span>            : private:
+<span class="lineNum">      40 </span>            : /// Pointer to a function which, given the type for a TargetDistribution, creates it
+<span class="lineNum">      41 </span>            :   typedef TargetDistribution*(*creator_pointer)(const TargetDistributionOptions&amp;);
+<span class="lineNum">      42 </span>            :   //
+<span class="lineNum">      43 </span>            :   typedef void(*keywords_pointer)(Keywords&amp;);
+<span class="lineNum">      44 </span>            : /// The set of possible target distribution we can use
+<span class="lineNum">      45 </span>            :   std::map&lt;std::string,creator_pointer&gt; m;
+<span class="lineNum">      46 </span>            :   //
+<span class="lineNum">      47 </span>            :   std::map&lt;std::string,Keywords&gt; mk;
+<span class="lineNum">      48 </span>            :   //
+<span class="lineNum">      49 </span>            :   typedef std::map&lt;std::string,creator_pointer&gt;::const_iterator const_mIterator;
+<span class="lineNum">      50 </span>            : public:
+<span class="lineNum">      51 </span>            : /// The destructor
+<span class="lineNum">      52 </span>            :   ~TargetDistributionRegister();
+<span class="lineNum">      53 </span>            : /// Add a new target distribution to the register
+<span class="lineNum">      54 </span>            :   void add( std::string type, creator_pointer, keywords_pointer kf);
+<span class="lineNum">      55 </span>            : /// Remove a target distribution to the register
+<span class="lineNum">      56 </span>            :   void remove(creator_pointer f);
+<span class="lineNum">      57 </span>            : /// Verify if a target distribution is present in the register
+<span class="lineNum">      58 </span>            :   bool check(std::string type);
+<span class="lineNum">      59 </span>            : /// Create a target distribution object
+<span class="lineNum">      60 </span>            :   TargetDistribution* create( const TargetDistributionOptions&amp; to );
+<span class="lineNum">      61 </span>            :   //
+<span class="lineNum">      62 </span>            :   std::vector&lt;std::string&gt; list() const;
+<span class="lineNum">      63 </span>            :   //
+<span class="lineNum">      64 </span>            :   bool printManual(const std::string&amp; type, const bool&amp; vimout);
+<span class="lineNum">      65 </span>            : 
+<span class="lineNum">      66 </span>            :   const Keywords&amp; getKeywords(const std::string&amp; type);
+<span class="lineNum">      67 </span>            : };
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            : TargetDistributionRegister&amp; targetDistributionRegister();
+<span class="lineNum">      70 </span>            : 
+<span class="lineNum">      71 </span>            : std::ostream &amp; operator&lt;&lt;(std::ostream &amp;log,const TargetDistributionRegister&amp;ar);
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            : #define VES_REGISTER_TARGET_DISTRIBUTION(classname,type) \
+<span class="lineNum">      74 </span>            :   static class classname##RegisterMe{ \
+<span class="lineNum">      75 </span>            :     static TargetDistribution * create(const TargetDistributionOptions&amp;to){return new classname(to);} \
+<span class="lineNum">      76 </span>            :   public: \
+<span class="lineNum">      77 </span>            :     classname##RegisterMe(){targetDistributionRegister().add(type,create,classname::registerKeywords);}; \
+<span class="lineNum">      78 </span>            :     ~classname##RegisterMe(){targetDistributionRegister().remove(create);}; \
+<span class="lineNum">      79 </span>            :   } classname##RegisterMeObject;
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            : }
+<span class="lineNum">      82 </span>            : }
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span>            : #endif
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

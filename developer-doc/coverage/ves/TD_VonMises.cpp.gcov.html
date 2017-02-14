@@ -1,0 +1,320 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - ves/TD_VonMises.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">ves</a> - TD_VonMises.cpp<span style="font-size: 80%;"> (source / <a href="TD_VonMises.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">91</td>
+            <td class="headerCovTableEntry">92</td>
+            <td class="headerCovTableEntryHi">98.9 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2016-2017 The ves-code team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE-VES file at the root of this folder for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.ves-code.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of ves-code, version 1.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    ves-code is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    ves-code is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with ves-code.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : #include &quot;TargetDistribution.h&quot;
+<span class="lineNum">      24 </span>            : #include &quot;TargetDistributionRegister.h&quot;
+<span class="lineNum">      25 </span>            : 
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : #include &quot;tools/Keywords.h&quot;
+<span class="lineNum">      28 </span>            : #include &quot;tools/Tools.h&quot;
+<span class="lineNum">      29 </span>            : #include &quot;GridIntegrationWeights.h&quot;
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : #include &lt;iostream&gt;
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : namespace PLMD{
+<span class="lineNum">      36 </span>            : namespace ves{
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            : //+PLUMEDOC VES_TARGETDIST VON_MISES
+<span class="lineNum">      39 </span>            : /*
+<span class="lineNum">      40 </span>            : Target distribution given by a sum of Von Mises distributions (static).
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            : Employ a target distribution that is given by a sum where each
+<span class="lineNum">      43 </span>            : term is a product of one-dimensional Von Mises distributions,
+<span class="lineNum">      44 </span>            : \f[
+<span class="lineNum">      45 </span>            : p(\mathbf{s}) = \sum_{i} \, w_{i}
+<span class="lineNum">      46 </span>            : \prod_{k}^{d}
+<span class="lineNum">      47 </span>            : \frac{\exp\left(\kappa_{k,i} \, \cos (s_{k}-\mu_{k,i}) \right)}
+<span class="lineNum">      48 </span>            : {2\pi I_{0}(\kappa_{k,i})}
+<span class="lineNum">      49 </span>            : \f]
+<span class="lineNum">      50 </span>            : where \f$\boldsymbol{\mu}_{i}=(\mu_{1,i},\mu_{2,i},\ldots,\mu_{d,i})\f$
+<span class="lineNum">      51 </span>            : are the centers of the distributions,
+<span class="lineNum">      52 </span>            : \f$\boldsymbol{\kappa}_{i}=(\kappa_{1,i},\kappa_{2,i},\ldots,\kappa_{d,i})\f$
+<span class="lineNum">      53 </span>            : are parameters that determine the extend of each distribution,
+<span class="lineNum">      54 </span>            : and \f$I_{0}(x)\f$ is the modified Bessel function of order 0.
+<span class="lineNum">      55 </span>            : The weights \f$w_{i}\f$ are normalized to 1, \f$\sum_{i}w_{i}=1\f$.
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span>            : The Von Mises distribution is defined for periodic variables with a
+<span class="lineNum">      58 </span>            : periodicity of \f$2\pi\f$ and is analogous to the Gaussian distribution.
+<span class="lineNum">      59 </span>            : The parameter \f$ \sqrt{1/\kappa}\f$ is comparable to the standard deviation
+<span class="lineNum">      60 </span>            : \f$\sigma\f$ for the Gaussian distribution.
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span>            : To use this target distribution you need to give the centers
+<span class="lineNum">      63 </span>            : \f$\boldsymbol{\mu}_{i}=(\mu_{1,i},\mu_{2,i},\ldots,\mu_{d,i})\f$ by
+<span class="lineNum">      64 </span>            : using the numbered CENTER keywords and the &quot;standard deviations&quot;
+<span class="lineNum">      65 </span>            : \f$\boldsymbol{\sigma}_{i}=(\sqrt{1/\kappa_{1,i}},\sqrt{1/\kappa_{2,i}},\ldots,\sqrt{1/\kappa_{d,i}})\f$ using the numbered SIGMA keywords.
+<span class="lineNum">      66 </span>            : 
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span>            : \par Examples
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : Sum of two Von Mises distribution in one dimension that have equal weights
+<span class="lineNum">      71 </span>            : as no weights are given.
+<span class="lineNum">      72 </span>            : \verbatim
+<span class="lineNum">      73 </span>            : TARGET_DISTRIBUTION={VON_MISES
+<span class="lineNum">      74 </span>            :                      CENTER1=+2.0 SIGMA1=0.6
+<span class="lineNum">      75 </span>            :                      CENTER2=-2.0 SIGMA2=0.7}
+<span class="lineNum">      76 </span>            : \endverbatim
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            : Sum of two Von Mises distribution in two dimensions that have different weights.
+<span class="lineNum">      79 </span>            : Note that the weights are automatically normalized to 1 such that
+<span class="lineNum">      80 </span>            : specifying WEIGHTS=1.0,2.0 is equal to specifying WEIGHTS=0.33333,0.66667.
+<span class="lineNum">      81 </span>            : \verbatim
+<span class="lineNum">      82 </span>            : TARGET_DISTRIBUTION={VON_MISES
+<span class="lineNum">      83 </span>            :                      CENTER1=+2.0,+2.0 SIGMA1=0.6,0.7
+<span class="lineNum">      84 </span>            :                      CENTER2=-2.0,+2.0 SIGMA2=0.7,0.6
+<span class="lineNum">      85 </span>            :                      WEIGHTS=1.0,2.0}
+<span class="lineNum">      86 </span>            : \endverbatim
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span>            : */
+<a name="89"><span class="lineNum">      89 </span>            : //+ENDPLUMEDOC</a>
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span><span class="lineCov">         16 : class TD_VonMises: public TargetDistribution {</span>
+<span class="lineNum">      92 </span>            :   // properties of the Gaussians
+<span class="lineNum">      93 </span>            :   std::vector&lt; std::vector&lt;double&gt; &gt; sigmas_;
+<span class="lineNum">      94 </span>            :   std::vector&lt; std::vector&lt;double&gt; &gt; kappas_;
+<span class="lineNum">      95 </span>            :   std::vector&lt; std::vector&lt;double&gt; &gt; centers_;
+<span class="lineNum">      96 </span>            :   std::vector&lt; std::vector&lt;double&gt; &gt; normalization_;
+<span class="lineNum">      97 </span>            :   std::vector&lt;double&gt; weights_;
+<span class="lineNum">      98 </span>            :   std::vector&lt;double&gt; periods_;
+<span class="lineNum">      99 </span>            :   unsigned int ncenters_;
+<span class="lineNum">     100 </span>            :   double VonMisesDiagonal(const std::vector&lt;double&gt;&amp;, const std::vector&lt;double&gt;&amp;, const std::vector&lt;double&gt;&amp;, const std::vector&lt;double&gt;&amp;, const std::vector&lt;double&gt;&amp;) const;
+<span class="lineNum">     101 </span>            :   double getNormalization(const double, const double) const;
+<span class="lineNum">     102 </span>            : public:
+<span class="lineNum">     103 </span>            :   static void registerKeywords(Keywords&amp;);
+<span class="lineNum">     104 </span>            :   explicit TD_VonMises(const TargetDistributionOptions&amp; to);
+<span class="lineNum">     105 </span>            :   double getValue(const std::vector&lt;double&gt;&amp;) const;
+<span class="lineNum">     106 </span>            : };
+<a name="107"><span class="lineNum">     107 </span>            : </a>
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span><span class="lineCov">       4022 : VES_REGISTER_TARGET_DISTRIBUTION(TD_VonMises,&quot;VON_MISES&quot;)</span>
+<a name="110"><span class="lineNum">     110 </span>            : </a>
+<span class="lineNum">     111 </span>            : 
+<span class="lineNum">     112 </span><span class="lineCov">       1338 : void TD_VonMises::registerKeywords(Keywords&amp; keys){</span>
+<span class="lineNum">     113 </span><span class="lineCov">       1338 :   TargetDistribution::registerKeywords(keys);</span>
+<span class="lineNum">     114 </span><span class="lineCov">       1338 :   keys.add(&quot;numbered&quot;,&quot;CENTER&quot;,&quot;The centers of the Von Mises distributions. For one distribution you can use either CENTER or CENTER1. For more distributions you need to use the numbered CENTER keywords, one for each distribution.&quot;);</span>
+<span class="lineNum">     115 </span><span class="lineCov">       1338 :   keys.add(&quot;numbered&quot;,&quot;SIGMA&quot;,&quot;The standard deviations of the Von Mises distributions. For one distribution you can use either CENTER or CENTER1. For more distributions you need to use the numbered CENTER keywords, one for each distribution.&quot;);</span>
+<span class="lineNum">     116 </span><span class="lineCov">       1338 :   keys.add(&quot;optional&quot;,&quot;WEIGHTS&quot;,&quot;The weights of the Von Mises distributions. Have to be as many as the number of centers given with the numbered CENTER keywords. If no weights are given the distributions are weighted equally. The weights are automatically normalized to 1.&quot;);</span>
+<span class="lineNum">     117 </span><span class="lineCov">       1338 :   keys.add(&quot;hidden&quot;,&quot;PERIODS&quot;,&quot;The periods for each of the dimensions. By default they are 2*pi for each dimension.&quot;);</span>
+<span class="lineNum">     118 </span><span class="lineCov">       1338 :   keys.use(&quot;BIAS_CUTOFF&quot;);</span>
+<span class="lineNum">     119 </span><span class="lineCov">       1338 :   keys.use(&quot;WELLTEMPERED_FACTOR&quot;);</span>
+<span class="lineNum">     120 </span><span class="lineCov">       1338 :   keys.use(&quot;SHIFT_TO_ZERO&quot;);</span>
+<span class="lineNum">     121 </span>            :   //keys.use(&quot;NORMALIZE&quot;);
+<span class="lineNum">     122 </span><span class="lineCov">       1338 : }</span>
+<a name="123"><span class="lineNum">     123 </span>            : </a>
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span><span class="lineCov">          8 : TD_VonMises::TD_VonMises( const TargetDistributionOptions&amp; to ):</span>
+<span class="lineNum">     126 </span>            : TargetDistribution(to),
+<span class="lineNum">     127 </span>            : sigmas_(0),
+<span class="lineNum">     128 </span>            : centers_(0),
+<span class="lineNum">     129 </span>            : normalization_(0),
+<span class="lineNum">     130 </span>            : weights_(0),
+<span class="lineNum">     131 </span>            : periods_(0),
+<span class="lineNum">     132 </span><span class="lineCov">          8 : ncenters_(0)</span>
+<span class="lineNum">     133 </span>            : {
+<span class="lineNum">     134 </span><span class="lineCov">         16 :   for(unsigned int i=1;; i++) {</span>
+<span class="lineNum">     135 </span><span class="lineCov">         16 :     std::vector&lt;double&gt; tmp_center;</span>
+<span class="lineNum">     136 </span><span class="lineCov">         16 :     if(!parseNumberedVector(&quot;CENTER&quot;,i,tmp_center) ){break;}</span>
+<span class="lineNum">     137 </span><span class="lineCov">          8 :     centers_.push_back(tmp_center);</span>
+<span class="lineNum">     138 </span><span class="lineCov">         16 :   }</span>
+<span class="lineNum">     139 </span><span class="lineCov">         16 :   for(unsigned int i=1;; i++) {</span>
+<span class="lineNum">     140 </span><span class="lineCov">         16 :     std::vector&lt;double&gt; tmp_sigma;</span>
+<span class="lineNum">     141 </span><span class="lineCov">         16 :     if(!parseNumberedVector(&quot;SIGMA&quot;,i,tmp_sigma) ){break;}</span>
+<span class="lineNum">     142 </span><span class="lineCov">          8 :     sigmas_.push_back(tmp_sigma);</span>
+<span class="lineNum">     143 </span><span class="lineCov">         16 :   }</span>
+<span class="lineNum">     144 </span><span class="lineCov">          8 :   if(centers_.size()==0 &amp;&amp; sigmas_.size()==0){</span>
+<span class="lineNum">     145 </span><span class="lineCov">          4 :     std::vector&lt;double&gt; tmp_center;</span>
+<span class="lineNum">     146 </span><span class="lineCov">          4 :     if(parseVector(&quot;CENTER&quot;,tmp_center,true)){</span>
+<span class="lineNum">     147 </span><span class="lineCov">          4 :       centers_.push_back(tmp_center);</span>
+<span class="lineNum">     148 </span>            :     }
+<span class="lineNum">     149 </span><span class="lineCov">          8 :     std::vector&lt;double&gt; tmp_sigma;</span>
+<span class="lineNum">     150 </span><span class="lineCov">          4 :     if(parseVector(&quot;SIGMA&quot;,tmp_sigma,true)){</span>
+<span class="lineNum">     151 </span><span class="lineCov">          4 :       sigmas_.push_back(tmp_sigma);</span>
+<span class="lineNum">     152 </span><span class="lineCov">          4 :     }</span>
+<span class="lineNum">     153 </span>            :   }
+<span class="lineNum">     154 </span><span class="lineCov">          8 :   plumed_massert(centers_.size()==sigmas_.size(),&quot;there has to be an equal amount of CENTER and SIGMA keywords&quot;);</span>
+<span class="lineNum">     155 </span><span class="lineCov">          8 :   if(centers_.size()==0){</span>
+<span class="lineNum">     156 </span><span class="lineNoCov">          0 :     plumed_merror(getName()+&quot;: CENTER and SIGMA keywords seem to be missing. Note that numbered keywords start at CENTER1 and SIGMA1.&quot;);</span>
+<span class="lineNum">     157 </span>            :   }
+<span class="lineNum">     158 </span>            :   //
+<span class="lineNum">     159 </span><span class="lineCov">          8 :   setDimension(centers_[0].size());</span>
+<span class="lineNum">     160 </span><span class="lineCov">          8 :   ncenters_ = centers_.size();</span>
+<span class="lineNum">     161 </span>            :   //
+<span class="lineNum">     162 </span>            :   // check centers and sigmas
+<span class="lineNum">     163 </span><span class="lineCov">         20 :   for(unsigned int i=0; i&lt;ncenters_; i++) {</span>
+<span class="lineNum">     164 </span><span class="lineCov">         12 :     if(centers_[i].size()!=getDimension()){plumed_merror(getName()+&quot;: one of the CENTER keyword does not match the given dimension&quot;);}</span>
+<span class="lineNum">     165 </span><span class="lineCov">         12 :     if(sigmas_[i].size()!=getDimension()){plumed_merror(getName()+&quot;: one of the SIGMA keyword does not match the given dimension&quot;);}</span>
+<span class="lineNum">     166 </span>            :   }
+<span class="lineNum">     167 </span>            :   //
+<span class="lineNum">     168 </span><span class="lineCov">          8 :   kappas_.resize(sigmas_.size());</span>
+<span class="lineNum">     169 </span><span class="lineCov">         20 :   for(unsigned int i=0; i&lt;sigmas_.size();i++){</span>
+<span class="lineNum">     170 </span><span class="lineCov">         12 :     kappas_[i].resize(sigmas_[i].size());</span>
+<span class="lineNum">     171 </span><span class="lineCov">         30 :     for(unsigned int k=0; k&lt;kappas_[i].size(); k++){</span>
+<span class="lineNum">     172 </span><span class="lineCov">         18 :       kappas_[i][k] = 1.0/(sigmas_[i][k]*sigmas_[i][k]);</span>
+<span class="lineNum">     173 </span>            :     }
+<span class="lineNum">     174 </span>            :   }
+<span class="lineNum">     175 </span>            :   //
+<span class="lineNum">     176 </span><span class="lineCov">          8 :   if(!parseVector(&quot;WEIGHTS&quot;,weights_,true)){weights_.assign(centers_.size(),1.0);}</span>
+<span class="lineNum">     177 </span><span class="lineCov">          8 :   if(centers_.size()!=weights_.size()){plumed_merror(getName() + &quot;: there has to be as many weights given in WEIGHTS as numbered CENTER keywords&quot;);}</span>
+<span class="lineNum">     178 </span>            :   //
+<span class="lineNum">     179 </span><span class="lineCov">          8 :   if(!parseVector(&quot;PERIODS&quot;,periods_,true)){periods_.assign(getDimension(),2*pi);}</span>
+<span class="lineNum">     180 </span><span class="lineCov">          8 :   if(periods_.size()!=getDimension()){plumed_merror(getName() + &quot;: the number of values given in PERIODS does not match the dimension of the distribution&quot;);}</span>
+<span class="lineNum">     181 </span>            :   //
+<span class="lineNum">     182 </span><span class="lineCov">          8 :   double sum_weights=0.0;</span>
+<span class="lineNum">     183 </span><span class="lineCov">          8 :   for(unsigned int i=0;i&lt;weights_.size();i++){sum_weights+=weights_[i];}</span>
+<span class="lineNum">     184 </span><span class="lineCov">          8 :   for(unsigned int i=0;i&lt;weights_.size();i++){weights_[i]/=sum_weights;}</span>
+<span class="lineNum">     185 </span>            :   //
+<span class="lineNum">     186 </span><span class="lineCov">          8 :   normalization_.resize(ncenters_);</span>
+<span class="lineNum">     187 </span><span class="lineCov">         20 :   for(unsigned int i=0; i&lt;ncenters_; i++){</span>
+<span class="lineNum">     188 </span><span class="lineCov">         12 :     normalization_[i].resize(getDimension());</span>
+<span class="lineNum">     189 </span><span class="lineCov">         30 :     for(unsigned int k=0; k&lt;getDimension(); k++){</span>
+<span class="lineNum">     190 </span><span class="lineCov">         18 :       normalization_[i][k] = getNormalization(kappas_[i][k],periods_[k]);</span>
+<span class="lineNum">     191 </span>            :     }
+<span class="lineNum">     192 </span>            :   }
+<span class="lineNum">     193 </span><span class="lineCov">          8 :   checkRead();</span>
+<span class="lineNum">     194 </span><span class="lineCov">          8 : }</span>
+<a name="195"><span class="lineNum">     195 </span>            : </a>
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span><span class="lineCov">      31000 : double TD_VonMises::getValue(const std::vector&lt;double&gt;&amp; argument) const {</span>
+<span class="lineNum">     198 </span><span class="lineCov">      31000 :   double value=0.0;</span>
+<span class="lineNum">     199 </span><span class="lineCov">      92200 :   for(unsigned int i=0;i&lt;ncenters_;i++){</span>
+<span class="lineNum">     200 </span><span class="lineCov">      61200 :     value+=weights_[i]*VonMisesDiagonal(argument, centers_[i], kappas_[i],periods_,normalization_[i]);</span>
+<span class="lineNum">     201 </span>            :   }
+<span class="lineNum">     202 </span><span class="lineCov">      31000 :   return value;</span>
+<span class="lineNum">     203 </span>            : }
+<a name="204"><span class="lineNum">     204 </span>            : </a>
+<span class="lineNum">     205 </span>            : 
+<span class="lineNum">     206 </span><span class="lineCov">      79218 : double TD_VonMises::VonMisesDiagonal(const std::vector&lt;double&gt;&amp; argument, const std::vector&lt;double&gt;&amp; center, const std::vector&lt;double&gt;&amp; kappa, const std::vector&lt;double&gt;&amp; periods, const std::vector&lt;double&gt;&amp; normalization) const {</span>
+<span class="lineNum">     207 </span><span class="lineCov">      79218 :   double value = 1.0;</span>
+<span class="lineNum">     208 </span><span class="lineCov">     218436 :   for(unsigned int k=0; k&lt;argument.size(); k++){</span>
+<span class="lineNum">     209 </span><span class="lineCov">     139218 :     double arg = kappa[k]*cos( ((2*pi)/periods[k])*(argument[k]-center[k]) );</span>
+<span class="lineNum">     210 </span><span class="lineCov">     139218 :     value*=normalization[k]*exp(arg);</span>
+<span class="lineNum">     211 </span>            :   }
+<span class="lineNum">     212 </span><span class="lineCov">      79218 :   return value;</span>
+<span class="lineNum">     213 </span>            : }
+<a name="214"><span class="lineNum">     214 </span>            : </a>
+<span class="lineNum">     215 </span>            : 
+<span class="lineNum">     216 </span><span class="lineCov">         18 : double TD_VonMises::getNormalization(const double kappa, const double period) const {</span>
+<span class="lineNum">     217 </span>            :   //
+<span class="lineNum">     218 </span><span class="lineCov">         18 :   std::vector&lt;double&gt; centers(1);</span>
+<span class="lineNum">     219 </span><span class="lineCov">         18 :   centers[0] = 0.0;</span>
+<span class="lineNum">     220 </span><span class="lineCov">         36 :   std::vector&lt;double&gt; kappas(1);</span>
+<span class="lineNum">     221 </span><span class="lineCov">         18 :   kappas[0] = kappa;</span>
+<span class="lineNum">     222 </span><span class="lineCov">         36 :   std::vector&lt;double&gt; periods(1);</span>
+<span class="lineNum">     223 </span><span class="lineCov">         18 :   periods[0] = period;</span>
+<span class="lineNum">     224 </span><span class="lineCov">         36 :   std::vector&lt;double&gt; norm(1);</span>
+<span class="lineNum">     225 </span><span class="lineCov">         18 :   norm[0] = 1.0;</span>
+<span class="lineNum">     226 </span>            :   //
+<span class="lineNum">     227 </span><span class="lineCov">         18 :   const unsigned int nbins = 1001;</span>
+<span class="lineNum">     228 </span><span class="lineCov">         36 :   std::vector&lt;double&gt; points;</span>
+<span class="lineNum">     229 </span><span class="lineCov">         36 :   std::vector&lt;double&gt; weights;</span>
+<span class="lineNum">     230 </span><span class="lineCov">         18 :   double min = 0.0;</span>
+<span class="lineNum">     231 </span><span class="lineCov">         18 :   double max = period;</span>
+<span class="lineNum">     232 </span><span class="lineCov">         18 :   GridIntegrationWeights::getOneDimensionalIntegrationPointsAndWeights(points,weights,nbins,min,max);</span>
+<span class="lineNum">     233 </span>            :   //
+<span class="lineNum">     234 </span><span class="lineCov">         18 :   double sum = 0.0;</span>
+<span class="lineNum">     235 </span><span class="lineCov">      18036 :   for(unsigned int l=0; l&lt;nbins; l++){</span>
+<span class="lineNum">     236 </span><span class="lineCov">      18018 :     std::vector&lt;double&gt; arg(1); arg[0]= points[l];</span>
+<span class="lineNum">     237 </span><span class="lineCov">      18018 :     sum += weights[l] * VonMisesDiagonal(arg,centers,kappas,periods,norm);</span>
+<span class="lineNum">     238 </span><span class="lineCov">      18018 :   }</span>
+<span class="lineNum">     239 </span><span class="lineCov">         36 :   return 1.0/sum;</span>
+<span class="lineNum">     240 </span>            : }
+<span class="lineNum">     241 </span>            : 
+<a name="242"><span class="lineNum">     242 </span>            : </a>
+<span class="lineNum">     243 </span>            : }
+<span class="lineNum">     244 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

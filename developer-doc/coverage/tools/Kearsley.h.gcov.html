@@ -1,0 +1,315 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - tools/Kearsley.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">tools</a> - Kearsley.h<span style="font-size: 80%;"> (source / <a href="Kearsley.h.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2011-2016 The plumed team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : #ifndef __PLUMED_tools_Kearsley_h
+<span class="lineNum">      23 </span>            : #define __PLUMED_tools_Kearsley_h
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            : #include &quot;Vector.h&quot;
+<span class="lineNum">      26 </span>            : #include &quot;Tensor.h&quot;
+<span class="lineNum">      27 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : namespace PLMD{
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : class Log;
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : /*! A class that implements Kearsley's calculation
+<span class="lineNum">      34 </span>            :  which is optimal alignment via quaternion and
+<span class="lineNum">      35 </span>            :  analytical derivatives via perturbation theory
+<span class="lineNum">      36 </span>            : 
+<span class="lineNum">      37 </span>            : In Kearsley algorithm (see, S. K. Kearsley, Acta Crystallogr., Sect. A: Found. Crystallogr. 45, 208 1989 ),
+<span class="lineNum">      38 </span>            : here adapted to included the COM reset,
+<span class="lineNum">      39 </span>            : one first calculates the COM reset position respect to frame  \f$ \{x_0,y_0,z_0\} \f$ (running frame),
+<span class="lineNum">      40 </span>            : being \f$ w_{tot}^{al}=\sum_i w_{al}^i \f$
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            : \f{eqnarray}
+<span class="lineNum">      43 </span>            : \tilde x_0^i=x_0^i-\sum_i \frac{w_{al}^i}{w_{tot}^{al}} x_0^i\\
+<span class="lineNum">      44 </span>            : \tilde y_0^i=y_0^i-\sum_i \frac{w_{al}^i}{w_{tot}^{al}} y_0^i\\
+<span class="lineNum">      45 </span>            : \tilde z_0^i=z_0^i-\sum_i \frac{w_{al}^i}{w_{tot}^{al}} z_0^i
+<span class="lineNum">      46 </span>            : \f}
+<span class="lineNum">      47 </span>            : 
+<span class="lineNum">      48 </span>            : and the same is done with the reference one \f$ \{x_1,y_1,z_1\} \f$
+<span class="lineNum">      49 </span>            : \f{eqnarray}
+<span class="lineNum">      50 </span>            : \tilde x_1^i=x_1^i-\sum_i \frac{w_{al}^i}{w_{tot}^{al}} x_1^i\\
+<span class="lineNum">      51 </span>            : \tilde y_1^i=y_1^i-\sum_i \frac{w_{al}^i}{w_{tot}^{al}} y_1^i\\
+<span class="lineNum">      52 </span>            : \tilde z_1^i=z_1^i-\sum_i \frac{w_{al}^i}{w_{tot}^{al}} z_1^i
+<span class="lineNum">      53 </span>            : \f}
+<span class="lineNum">      54 </span>            : 
+<span class="lineNum">      55 </span>            : Then one can build the \f$ \{x_p,y_p,z_p\} \f$ and \f$ \{x_m,y_m,z_m\} \f$
+<span class="lineNum">      56 </span>            : vectors of weighted summation and differences:
+<span class="lineNum">      57 </span>            : \f{eqnarray}
+<span class="lineNum">      58 </span>            : x_m^i=w_{al}^i(\tilde x_0^i-\tilde x_1^i)\\
+<span class="lineNum">      59 </span>            : y_m^i=w_{al}^i(\tilde y_0^i-\tilde y_1^i)\\
+<span class="lineNum">      60 </span>            : z_m^i=w_{al}^i(\tilde z_0^i-\tilde z_1^i)
+<span class="lineNum">      61 </span>            : \f}
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            : \f{eqnarray}
+<span class="lineNum">      64 </span>            : x_p^i=w_{al}^i(x_0^i+x_1^i)\\
+<span class="lineNum">      65 </span>            : y_p^i=w_{al}^i(y_0^i+y_1^i)\\
+<span class="lineNum">      66 </span>            : z_p^i=w_{al}^i(z_0^i+z_1^i)
+<span class="lineNum">      67 </span>            : \f}
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : Then one build the COM-resetted matrix
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : \f{displaymath}
+<span class="lineNum">      73 </span>            : \mathbf{M}=\left[
+<span class="lineNum">      74 </span>            : \begin{array}{cccc}
+<span class="lineNum">      75 </span>            : \sum ( {x}_{m}^{2}+{y}_{m}^{2}+{z}_{m}^{2})      &amp;
+<span class="lineNum">      76 </span>            :  \sum (y_{p}z_{m} -y_{m}z_{p})   &amp;
+<span class="lineNum">      77 </span>            :  \sum ( x_{m}z_{p} -x_{p}z_{m}) &amp;
+<span class="lineNum">      78 </span>            :  \sum (x_{p}y_{m}-x_{m}y_{p} ) \\
+<span class="lineNum">      79 </span>            :   \sum ( y_{p}z_{m} -y_{m}z_{p}) &amp;
+<span class="lineNum">      80 </span>            : \sum (  {x}_{m}^{2}+{y}_{p}^{2}+{z}_{p}^{2}) &amp;
+<span class="lineNum">      81 </span>            : \sum ( x_{m}y_{m} -x_{p}y_{p} ) &amp;
+<span class="lineNum">      82 </span>            :  \sum (x_{m}z_{m}-x_{p}z_{p} ) \\
+<span class="lineNum">      83 </span>            :   \sum (x_m z_p - x_p z_m ) &amp;
+<span class="lineNum">      84 </span>            : \sum ( x_m y_m -x_p y_p) &amp;
+<span class="lineNum">      85 </span>            : \sum (  {x}_{p}^{2}+{y}_{m}^{2}+{z}_{p}^{2}) &amp;
+<span class="lineNum">      86 </span>            : \sum ( y_m z_m -y_p z_p) \\
+<span class="lineNum">      87 </span>            :   \sum (x_p y_m -x_m y_p ) &amp;
+<span class="lineNum">      88 </span>            : \sum (x_m z_m - x_p z_p ) &amp;
+<span class="lineNum">      89 </span>            : \sum (y_m z_m- y_p z_p ) &amp;
+<span class="lineNum">      90 </span>            : \sum (  {x}_{p}^{2}+{y}_{p}^{2}+{z}_{m}^{2}) \\
+<span class="lineNum">      91 </span>            : \end{array}
+<span class="lineNum">      92 </span>            : \right]
+<span class="lineNum">      93 </span>            : \f}
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span>            : by diagonalizing one obtains the mean square deviation by using the lowest eigenvalue \f$ \lambda_0 \f$
+<span class="lineNum">      96 </span>            : \f{equation}
+<span class="lineNum">      97 </span>            : MSD=  \frac{\lambda_{0}}{w_{tot}^{al}}
+<span class="lineNum">      98 </span>            : \f}
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span>            : The rotation matrix is obtained from the eigenvector corresponding to \f$ \lambda_0 \f$ eigenvalue
+<span class="lineNum">     101 </span>            : having components \f$ q_1, q_2, q_3, q_4 \f$
+<span class="lineNum">     102 </span>            : 
+<span class="lineNum">     103 </span>            : \f{displaymath}
+<span class="lineNum">     104 </span>            : \mathbf{R}=\left[
+<span class="lineNum">     105 </span>            : \begin{array}{ccc}
+<span class="lineNum">     106 </span>            : q_1 ^2 + q_2 ^2 - q_3 ^2 - q_4^2 &amp;
+<span class="lineNum">     107 </span>            : 2(q_2 q_3 + q_1 q_4) &amp;
+<span class="lineNum">     108 </span>            : 2(q_1 q_4 -q_1 q_3 )\\
+<span class="lineNum">     109 </span>            : 2(q_2 q_3 - q_1 q_4) &amp;
+<span class="lineNum">     110 </span>            : q_1 ^2 +q_3 ^2 -q_2 ^2 -q_4^2  &amp;
+<span class="lineNum">     111 </span>            : 2(q_3 q_4 - q_1 q_2)\\
+<span class="lineNum">     112 </span>            : 2( q_2 q_4 + q_1 q_3) &amp;
+<span class="lineNum">     113 </span>            : 2( q_3 q_4 - q_1 q_2) &amp;
+<span class="lineNum">     114 </span>            : q_1^2 +q_4 ^2 - q_2^2 - q_3 ^2 \\
+<span class="lineNum">     115 </span>            : \end{array}
+<span class="lineNum">     116 </span>            : \right]
+<span class="lineNum">     117 </span>            : \f}
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            : by using the perturbation theory one can retrieve the various derivatives:
+<span class="lineNum">     120 </span>            : 
+<span class="lineNum">     121 </span>            : In derivative calculation we exploited the classical Perturbation Theory up to the first order.
+<span class="lineNum">     122 </span>            : In extensive manner, we introduce a perturbation over \f$\lambda_{0}\f$ correlated with
+<span class="lineNum">     123 </span>            : a pertubation of the states \f$\vert q_{0}\rangle \f$ (in bra-ket notation):
+<span class="lineNum">     124 </span>            : \f{displaymath}
+<span class="lineNum">     125 </span>            : [\mathbf{M}+d\mathbf{M}][\vert q_{0}\rangle + \vert dq_{0}\rangle ]=
+<span class="lineNum">     126 </span>            : [\lambda_{0}+d\lambda_{0}][\vert q_{0}\rangle +\vert dq_{0}\rangle ]
+<span class="lineNum">     127 </span>            : \f}
+<span class="lineNum">     128 </span>            : Grouping the zero order we recollect the unperturbed equation(see before).
+<span class="lineNum">     129 </span>            : To the first order:
+<span class="lineNum">     130 </span>            : \f{displaymath}
+<span class="lineNum">     131 </span>            : d\mathbf{M}q_{0}+\mathbf{M}\vert dq_{0}\rangle =d\lambda_{0}\vert q_{0}\rangle +\lambda_{0} \vert dq_{0}\rangle
+<span class="lineNum">     132 </span>            : \f}
+<span class="lineNum">     133 </span>            : Now we express \f$dq_{0}\f$ as linear combination of the other ortogonal eigenvectors:
+<span class="lineNum">     134 </span>            : \f{displaymath}
+<span class="lineNum">     135 </span>            : \vert dq_{0}\rangle =\sum_{j\neq0}c_{j}\vert q_{j}\rangle
+<span class="lineNum">     136 </span>            : \f}
+<span class="lineNum">     137 </span>            : thus we have
+<span class="lineNum">     138 </span>            : \f{displaymath}
+<span class="lineNum">     139 </span>            : d\mathbf{M}\vert q_{0}\rangle +\sum_{j\neq0}c_{j}\mathbf{M}\vert q_{j}\rangle=
+<span class="lineNum">     140 </span>            : d\lambda_{0}\vert q_{0}\rangle+\lambda_{0}\sum_{j\neq0}c_{j}\vert q_{j}\rangle
+<span class="lineNum">     141 </span>            : \f}
+<span class="lineNum">     142 </span>            : projecting onto the \f$q_{0}\f$ state and deleting the projection onto \f$\vert dq_{0}\rangle\f$ beacuse
+<span class="lineNum">     143 </span>            : of ortogonality:
+<span class="lineNum">     144 </span>            : \f{displaymath}
+<span class="lineNum">     145 </span>            : \langle q_{0}\vert d\mathbf{M}\vert q_{0}\rangle +\sum_{j\neq0}c_{j}\lambda_{j}\langle q_{0} \vert q_{j}\rangle=
+<span class="lineNum">     146 </span>            : d\lambda_{0}\langle q_{0}\vert q_{0}\rangle+\lambda_{0}\sum_{j\neq0}c_{j}\langle q_{0}\vert q_{j}\rangle
+<span class="lineNum">     147 </span>            : \f}
+<span class="lineNum">     148 </span>            : we get
+<span class="lineNum">     149 </span>            : \f{displaymath}
+<span class="lineNum">     150 </span>            : \langle q_{0}\vert d\mathbf{M}\vert q_{0}\rangle=d\lambda_{0}
+<span class="lineNum">     151 </span>            : \f}
+<span class="lineNum">     152 </span>            : So, using simple chain rules:
+<span class="lineNum">     153 </span>            : \f{displaymath}
+<span class="lineNum">     154 </span>            : \langle q_{0}\vert \frac{d\mathbf{M}}{dr_{k}^{\gamma}}\vert q_{0}\rangle
+<span class="lineNum">     155 </span>            : dr_{k}^{\gamma}=d\lambda_{0}
+<span class="lineNum">     156 </span>            : \f}
+<span class="lineNum">     157 </span>            : where here we used the notation \f$r_{k}^{\gamma}\f$ to denote an arbitrary position which can be
+<span class="lineNum">     158 </span>            : \f$\tilde x_0 ,\tilde y_0,\tilde z_0\f$ or   \f$\tilde x_1 ,\tilde y_1,\tilde z_1\f$
+<span class="lineNum">     159 </span>            : we get
+<span class="lineNum">     160 </span>            : \f{displaymath}
+<span class="lineNum">     161 </span>            : \langle q_{0}\vert \frac{d\mathbf{M}}{dr_{k}^{\gamma}}\vert q_{0}\rangle
+<span class="lineNum">     162 </span>            : =\frac{d\lambda_{0}}{dr_{k}^{\gamma}}
+<span class="lineNum">     163 </span>            : \f}
+<span class="lineNum">     164 </span>            : 
+<span class="lineNum">     165 </span>            : The derivatives of the matrix \f$\frac{d\mathbf{M}}{dr_{k}^{\gamma}} \f$ can be readily obtained via the
+<span class="lineNum">     166 </span>            : chain rule
+<span class="lineNum">     167 </span>            : \f{displaymath}
+<span class="lineNum">     168 </span>            : \frac{d\mathbf{M}}{dr_{k}^{\gamma}}=\sum_{\l}^{nat}\sum_{\alpha}^{x,y,z} \frac{d\mathbf{M}}{dP_{l}^{\alpha}}\frac{dP_{l}^{\alpha}}{dr_{k}^{\gamma}} +\\
+<span class="lineNum">     169 </span>            : \frac{d\mathbf{M}}{dM_{l}^{\alpha}}\frac{dM_{l}^{\alpha}}{dr_{k}^{\gamma}}
+<span class="lineNum">     170 </span>            : \f}
+<span class="lineNum">     171 </span>            : 
+<span class="lineNum">     172 </span>            : where \f$ M_{l}^{\alpha} \f$ corresponds to \f$ x_m^{l},y_m^{l},z_m^{l} \f$   and
+<span class="lineNum">     173 </span>            : \f$ P_{l}^{\alpha} \f$ corresponds to \f$ x_p^{l},y_p^{l},z_p^{l} \f$ according to the \f$ \alpha \f$ component.
+<span class="lineNum">     174 </span>            : */
+<a name="175"><span class="lineNum">     175 </span>            : </a>
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span><span class="lineNoCov">          0 : class Kearsley</span>
+<span class="lineNum">     178 </span>            : {
+<span class="lineNum">     179 </span>            :   /// general log reference that needs to be initialized when constructed
+<span class="lineNum">     180 </span>            :   Log* log;
+<span class="lineNum">     181 </span>            :   /// position of atoms (first frame. In md is the running frame)
+<span class="lineNum">     182 </span>            :   std::vector&lt;Vector&gt; p0;
+<span class="lineNum">     183 </span>            :   /// position of atoms (second frame. In md is the  reference frame)
+<span class="lineNum">     184 </span>            :   std::vector&lt;Vector&gt; p1;
+<span class="lineNum">     185 </span>            :   /// alignment weight: the rmsd/msd that it provides is only based on this scalar
+<span class="lineNum">     186 </span>            :   std::vector&lt;double&gt; align;
+<span class="lineNum">     187 </span>            : 
+<span class="lineNum">     188 </span>            :   bool com0_is_removed;
+<span class="lineNum">     189 </span>            :   bool com1_is_removed;
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span>            : public:
+<span class="lineNum">     192 </span>            :   /// error: the distance between two frames (might be rmsd/msd. See below)
+<span class="lineNum">     193 </span>            :   double err;
+<span class="lineNum">     194 </span>            :   /// displacement: the vector that goes from the p0 onto p1
+<span class="lineNum">     195 </span>            :   std::vector&lt;Vector&gt; diff0on1;
+<span class="lineNum">     196 </span>            :   /// displacement: the vector that goes from the p1 onto p0 (via inverse rotation)
+<span class="lineNum">     197 </span>            :   std::vector&lt;Vector&gt; diff1on0;
+<span class="lineNum">     198 </span>            : 
+<span class="lineNum">     199 </span>            :   /// center of mass of p0
+<span class="lineNum">     200 </span>            :   Vector com0;
+<span class="lineNum">     201 </span>            :   /// center of mass of p1
+<span class="lineNum">     202 </span>            :   Vector com1;
+<span class="lineNum">     203 </span>            :   /// position resetted wrt coms p0
+<span class="lineNum">     204 </span>            :   std::vector&lt;Vector&gt; p0reset;
+<span class="lineNum">     205 </span>            :   /// position resetted wrt coms p1
+<span class="lineNum">     206 </span>            :   std::vector&lt;Vector&gt; p1reset;
+<span class="lineNum">     207 </span>            :   /// position rotated: p0
+<span class="lineNum">     208 </span>            :   std::vector&lt;Vector&gt; p0rotated;
+<span class="lineNum">     209 </span>            :   /// position rotated: p1
+<span class="lineNum">     210 </span>            :   std::vector&lt;Vector&gt; p1rotated;
+<span class="lineNum">     211 </span>            :   /// rotation matrices p0 on p1 and reverse (p1 over p0)
+<span class="lineNum">     212 </span>            :   Tensor rotmat0on1,rotmat1on0;
+<span class="lineNum">     213 </span>            :   /// derivatives: derivative of the error respect p0
+<span class="lineNum">     214 </span>            :   std::vector&lt;Vector&gt; derrdp0;
+<span class="lineNum">     215 </span>            :   /// derivatives: derivative of the error respect p1
+<span class="lineNum">     216 </span>            :   std::vector&lt;Vector&gt; derrdp1;
+<span class="lineNum">     217 </span>            :   /// derivative of the rotation matrix
+<span class="lineNum">     218 </span>            :   /// note the dimension 3x3 x 3 x N
+<span class="lineNum">     219 </span>            :   std::vector&lt;double&gt; dmatdp0;
+<span class="lineNum">     220 </span>            :   std::vector&lt;double&gt; dmatdp1;
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span>            :   /// constructor: need the two structure, the alignment vector and  the log reference
+<span class="lineNum">     223 </span>            :   Kearsley(  const std::vector&lt;Vector&gt; &amp;p0, const std::vector&lt;Vector&gt; &amp;p1,  const std::vector&lt;double&gt; &amp;align , Log* &amp;log);
+<span class="lineNum">     224 </span>            :   /// switch the assignment of the structure p0 (e.g. at each md step)
+<span class="lineNum">     225 </span>            :   void assignP0(const std::vector&lt;Vector&gt; &amp; p0);
+<span class="lineNum">     226 </span>            :   /// derivatives: derivative of the error respect p1
+<span class="lineNum">     227 </span>            :   void assignP1(const std::vector&lt;Vector&gt; &amp; p1);
+<span class="lineNum">     228 </span>            :   /// transfer the alignment vector
+<span class="lineNum">     229 </span>            :   void assignAlign(const std::vector&lt;double&gt; &amp; align);
+<span class="lineNum">     230 </span>            :   /// finite differences of all the relevant quantities: takes a bool which decides if giving back rmsd or not (msd in this case)
+<span class="lineNum">     231 </span>            :   void finiteDifferenceInterface(bool rmsd);
+<span class="lineNum">     232 </span>            :   // this makes the real calculation: the rmsd bool decides wether doing rmsd or msd
+<span class="lineNum">     233 </span>            :   double calculate( bool rmsd );
+<span class="lineNum">     234 </span>            : };
+<span class="lineNum">     235 </span>            : 
+<span class="lineNum">     236 </span>            : }
+<span class="lineNum">     237 </span>            : 
+<span class="lineNum">     238 </span>            : #endif
+<span class="lineNum">     239 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

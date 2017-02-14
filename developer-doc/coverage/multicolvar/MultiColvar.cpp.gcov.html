@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - multicolvar/MultiColvar.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">multicolvar</a> - MultiColvar.cpp<span style="font-size: 80%;"> (source / <a href="MultiColvar.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">35</td>
+            <td class="headerCovTableEntry">37</td>
+            <td class="headerCovTableEntryHi">94.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntryMed">85.7 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2012-2016 The plumed team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : #include &quot;MultiColvar.h&quot;
+<span class="lineNum">      23 </span>            : #include &quot;core/PlumedMain.h&quot;
+<span class="lineNum">      24 </span>            : #include &quot;core/ActionSet.h&quot;
+<span class="lineNum">      25 </span>            : #include &quot;core/SetupMolInfo.h&quot;
+<span class="lineNum">      26 </span>            : #include &quot;vesselbase/Vessel.h&quot;
+<span class="lineNum">      27 </span>            : #include &quot;tools/Pbc.h&quot;
+<span class="lineNum">      28 </span>            : #include &lt;vector&gt;
+<span class="lineNum">      29 </span>            : #include &lt;string&gt;
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : using namespace std;
+<span class="lineNum">      32 </span>            : namespace PLMD{
+<a name="33"><span class="lineNum">      33 </span>            : namespace multicolvar{</a>
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span><span class="lineCov">        161 : void MultiColvar::registerKeywords( Keywords&amp; keys ){</span>
+<span class="lineNum">      36 </span><span class="lineCov">        161 :   MultiColvarBase::registerKeywords( keys );</span>
+<span class="lineNum">      37 </span>            :   keys.reserve(&quot;numbered&quot;,&quot;ATOMS&quot;,&quot;the atoms involved in each of the collective variables you wish to calculate. &quot;
+<span class="lineNum">      38 </span>            :                                &quot;Keywords like ATOMS1, ATOMS2, ATOMS3,... should be listed and one CV will be &quot;
+<span class="lineNum">      39 </span>            :                                &quot;calculated for each ATOM keyword you specify (all ATOM keywords should &quot;
+<span class="lineNum">      40 </span>            :                                &quot;define the same number of atoms).  The eventual number of quantities calculated by this &quot;
+<span class="lineNum">      41 </span><span class="lineCov">        161 :                                &quot;action will depend on what functions of the distribution you choose to calculate.&quot;); </span>
+<span class="lineNum">      42 </span><span class="lineCov">        161 :   keys.reset_style(&quot;ATOMS&quot;,&quot;atoms&quot;);</span>
+<a name="43"><span class="lineNum">      43 </span><span class="lineCov">        161 : } </span></a>
+<span class="lineNum">      44 </span>            : 
+<span class="lineNum">      45 </span><span class="lineCov">        105 : MultiColvar::MultiColvar(const ActionOptions&amp;ao):</span>
+<span class="lineNum">      46 </span>            : Action(ao),
+<span class="lineNum">      47 </span><span class="lineCov">        105 : MultiColvarBase(ao)</span>
+<span class="lineNum">      48 </span>            : {
+<a name="49"><span class="lineNum">      49 </span><span class="lineCov">        105 : }</span></a>
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span><span class="lineCov">         63 : void MultiColvar::readAtoms( int&amp; natoms, std::vector&lt;AtomNumber&gt; all_atoms ){</span>
+<span class="lineNum">      52 </span><span class="lineCov">         63 :   if( atom_lab.size()==0 &amp;&amp; keywords.exists(&quot;ATOMS&quot;)  ) readAtomsLikeKeyword( &quot;ATOMS&quot;, natoms, all_atoms );</span>
+<span class="lineNum">      53 </span>            :   // Setup the multicolvar base
+<span class="lineNum">      54 </span><span class="lineCov">         63 :   setupMultiColvarBase( all_atoms );</span>
+<a name="55"><span class="lineNum">      55 </span><span class="lineCov">         63 : }</span></a>
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span><span class="lineCov">         47 : void MultiColvar::readAtomsLikeKeyword( const std::string &amp; key, int&amp; natoms, std::vector&lt;AtomNumber&gt;&amp; all_atoms ){ </span>
+<span class="lineNum">      58 </span><span class="lineCov">         47 :   plumed_assert( !usespecies );</span>
+<span class="lineNum">      59 </span><span class="lineCov">         94 :   if( all_atoms.size()&gt;0 ) return; </span>
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span><span class="lineCov">         47 :   std::vector&lt;AtomNumber&gt; t; </span>
+<span class="lineNum">      62 </span><span class="lineCov">        959 :   for(int i=1;;++i ){</span>
+<span class="lineNum">      63 </span><span class="lineCov">        959 :      parseAtomList(key, i, t );</span>
+<span class="lineNum">      64 </span><span class="lineCov">        959 :      if( t.empty() ) break;</span>
+<span class="lineNum">      65 </span>            : 
+<span class="lineNum">      66 </span><span class="lineCov">        912 :      log.printf(&quot;  Colvar %d is calculated from atoms : &quot;, i);</span>
+<span class="lineNum">      67 </span><span class="lineCov">        912 :      for(unsigned j=0;j&lt;t.size();++j) log.printf(&quot;%d &quot;,t[j].serial() );</span>
+<span class="lineNum">      68 </span><span class="lineCov">        912 :      log.printf(&quot;\n&quot;); </span>
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span><span class="lineCov">        912 :      if( i==1 &amp;&amp; natoms&lt;0 ){ natoms=t.size(); ablocks.resize(natoms); }</span>
+<span class="lineNum">      71 </span><span class="lineCov">        906 :      else if( i==1 ) ablocks.resize(natoms);</span>
+<span class="lineNum">      72 </span><span class="lineCov">        912 :      if( t.size()!=natoms ){</span>
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 :         std::string ss; Tools::convert(i,ss); </span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :         error(key + ss + &quot; keyword has the wrong number of atoms&quot;); </span>
+<span class="lineNum">      75 </span>            :      }
+<span class="lineNum">      76 </span><span class="lineCov">       3400 :      for(unsigned j=0;j&lt;natoms;++j){ </span>
+<span class="lineNum">      77 </span><span class="lineCov">       2488 :         ablocks[j].push_back( natoms*(i-1)+j ); all_atoms.push_back( t[j] ); </span>
+<span class="lineNum">      78 </span><span class="lineCov">       2488 :         atom_lab.push_back( std::pair&lt;unsigned,unsigned&gt;( 0, natoms*(i-1)+j ) );</span>
+<span class="lineNum">      79 </span>            :      }
+<span class="lineNum">      80 </span><span class="lineCov">        912 :      t.resize(0); </span>
+<span class="lineNum">      81 </span><span class="lineCov">        912 :   }</span>
+<span class="lineNum">      82 </span><span class="lineCov">         47 :   if( all_atoms.size()&gt;0 ){</span>
+<span class="lineNum">      83 </span><span class="lineCov">         47 :      nblock=0; </span>
+<span class="lineNum">      84 </span><span class="lineCov">         47 :      for(unsigned i=0;i&lt;ablocks[0].size();++i) addTaskToList( i );</span>
+<span class="lineNum">      85 </span><span class="lineCov">         47 :   }</span>
+<span class="lineNum">      86 </span>            : }
+<a name="87"><span class="lineNum">      87 </span>            :      </a>
+<span class="lineNum">      88 </span>            : }
+<span class="lineNum">      89 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

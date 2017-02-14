@@ -1,0 +1,289 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - gridtools/FindContourSurface.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">gridtools</a> - FindContourSurface.cpp<span style="font-size: 80%;"> (source / <a href="FindContourSurface.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">102</td>
+            <td class="headerCovTableEntry">107</td>
+            <td class="headerCovTableEntryHi">95.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryMed">87.5 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2016 The plumed team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : #include &quot;core/ActionRegister.h&quot;
+<span class="lineNum">      23 </span>            : #include &quot;ContourFindingBase.h&quot;
+<span class="lineNum">      24 </span>            : 
+<span class="lineNum">      25 </span>            : //+PLUMEDOC GRIDANALYSIS FIND_CONTOUR_SURFACE
+<span class="lineNum">      26 </span>            : /*
+<span class="lineNum">      27 </span>            : Find an isocontour by searching along either the x, y or direction.
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            : \par Examples
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : */
+<span class="lineNum">      32 </span>            : //+ENDPLUMEDOC
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : namespace PLMD {
+<a name="35"><span class="lineNum">      35 </span>            : namespace gridtools {</a>
+<span class="lineNum">      36 </span>            : 
+<span class="lineNum">      37 </span><span class="lineCov">          2 : class FindContourSurface : public ContourFindingBase {</span>
+<span class="lineNum">      38 </span>            : private:
+<span class="lineNum">      39 </span>            :   bool firsttime;
+<span class="lineNum">      40 </span>            :   unsigned dir_n;
+<span class="lineNum">      41 </span>            :   unsigned gbuffer;
+<span class="lineNum">      42 </span>            :   std::vector&lt;unsigned&gt; ones;
+<span class="lineNum">      43 </span>            :   std::vector&lt;unsigned&gt; gdirs;
+<span class="lineNum">      44 </span>            :   std::vector&lt;double&gt; direction;
+<span class="lineNum">      45 </span>            : public:
+<a name="46"><span class="lineNum">      46 </span>            :   static void registerKeywords( Keywords&amp; keys );</a>
+<a name="47"><span class="lineNum">      47 </span>            :   explicit FindContourSurface(const ActionOptions&amp;ao);</a>
+<span class="lineNum">      48 </span><span class="lineCov">         12 :   unsigned getNumberOfQuantities() const { return 2; }</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :   bool checkAllActive() const { return gbuffer==0; }</span>
+<span class="lineNum">      50 </span>            :   void clearAverage();
+<span class="lineNum">      51 </span>            :   void prepareForAveraging();
+<span class="lineNum">      52 </span>            :   void compute( const unsigned&amp; current, MultiValue&amp; myvals ) const ;
+<span class="lineNum">      53 </span>            :   void finishAveraging();
+<a name="54"><span class="lineNum">      54 </span>            : };</a>
+<span class="lineNum">      55 </span>            : 
+<a name="56"><span class="lineNum">      56 </span><span class="lineCov">       4015 : PLUMED_REGISTER_ACTION(FindContourSurface,&quot;FIND_CONTOUR_SURFACE&quot;)</span></a>
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span><span class="lineCov">          3 : void FindContourSurface::registerKeywords( Keywords&amp; keys ){</span>
+<span class="lineNum">      59 </span><span class="lineCov">          3 :   ContourFindingBase::registerKeywords( keys );</span>
+<span class="lineNum">      60 </span><span class="lineCov">          3 :   keys.add(&quot;compulsory&quot;,&quot;SEARCHDIR&quot;,&quot;In which directions do you wish to search for the contour.&quot;);</span>
+<span class="lineNum">      61 </span><span class="lineCov">          3 :   keys.add(&quot;compulsory&quot;,&quot;BUFFER&quot;,&quot;0&quot;,&quot;number of buffer grid points around location where grid was found on last step.  If this is zero the full grid is calculated on each step&quot;);</span>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">          3 : }</span></a>
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span><span class="lineCov">          1 : FindContourSurface::FindContourSurface(const ActionOptions&amp;ao):</span>
+<span class="lineNum">      65 </span>            : Action(ao),
+<span class="lineNum">      66 </span>            : ContourFindingBase(ao),
+<span class="lineNum">      67 </span>            : firsttime(true),
+<span class="lineNum">      68 </span><span class="lineCov">          1 : ones(ingrid-&gt;getDimension(),1)</span>
+<span class="lineNum">      69 </span>            : {
+<span class="lineNum">      70 </span><span class="lineCov">          1 :   if( ingrid-&gt;getDimension()&lt;2 ) error(&quot;cannot find dividing surface if input grid is one dimensional&quot;);</span>
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span><span class="lineCov">          1 :   std::string dir; parse(&quot;SEARCHDIR&quot;,dir); parse(&quot;BUFFER&quot;,gbuffer);</span>
+<span class="lineNum">      73 </span><span class="lineCov">          1 :   log.printf(&quot;  calculating location of contour on %d dimensional grid \n&quot;, ingrid-&gt;getDimension()-1 );</span>
+<span class="lineNum">      74 </span><span class="lineCov">          1 :   if( gbuffer&gt;0 ) log.printf(&quot;  after first step a subset of only %u grid points around where the countour was found will be checked\n&quot;,gbuffer);</span>
+<span class="lineNum">      75 </span><span class="lineCov">          1 :   checkRead();</span>
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span><span class="lineCov">          1 :   unsigned n=0; gdirs.resize( ingrid-&gt;getDimension()-1 );</span>
+<span class="lineNum">      78 </span><span class="lineCov">          4 :   for(unsigned i=0;i&lt;ingrid-&gt;getDimension();++i){</span>
+<span class="lineNum">      79 </span><span class="lineCov">          3 :       if( ingrid-&gt;getComponentName(i)==dir ){</span>
+<span class="lineNum">      80 </span><span class="lineCov">          1 :           dir_n=i; </span>
+<span class="lineNum">      81 </span>            :       } else {
+<span class="lineNum">      82 </span><span class="lineCov">          2 :           if( n==gdirs.size() ) error(&quot;could not find &quot; + dir + &quot; direction in input grid&quot;);</span>
+<span class="lineNum">      83 </span><span class="lineCov">          2 :           gdirs[n]=i; n++; </span>
+<span class="lineNum">      84 </span>            :       }
+<span class="lineNum">      85 </span>            :   }
+<span class="lineNum">      86 </span><span class="lineCov">          1 :   if( n!=(ingrid-&gt;getDimension()-1) ) error(&quot;output of grid is not understood&quot;);</span>
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span>            :   // Create the input from the old string
+<span class="lineNum">      89 </span><span class="lineCov">          2 :   std::string vstring = &quot;COMPONENTS=&quot; + getLabel() + &quot; COORDINATES=&quot; + ingrid-&gt;getComponentName( gdirs[0] );</span>
+<span class="lineNum">      90 </span><span class="lineCov">          1 :   for(unsigned i=1;i&lt;gdirs.size();++i) vstring += &quot;,&quot; + ingrid-&gt;getComponentName( gdirs[i] );</span>
+<span class="lineNum">      91 </span><span class="lineCov">          1 :   vstring += &quot; PBC=&quot;;</span>
+<span class="lineNum">      92 </span><span class="lineCov">          1 :   if( ingrid-&gt;isPeriodic(gdirs[0]) ) vstring+=&quot;T&quot;;</span>
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :   else vstring+=&quot;F&quot;;</span>
+<span class="lineNum">      94 </span><span class="lineCov">          2 :   for(unsigned i=1;i&lt;gdirs.size();++i){</span>
+<span class="lineNum">      95 </span><span class="lineCov">          1 :       if( ingrid-&gt;isPeriodic(gdirs[i]) ) vstring+=&quot;,T&quot;; else vstring+=&quot;,F&quot;;</span>
+<span class="lineNum">      96 </span>            :   }
+<span class="lineNum">      97 </span><span class="lineCov">          1 :   createGrid( &quot;grid&quot;, vstring ); mygrid-&gt;setNoDerivatives(); </span>
+<span class="lineNum">      98 </span><span class="lineCov">          2 :   setAveragingAction( mygrid, true );</span>
+<a name="99"><span class="lineNum">      99 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span><span class="lineCov">          3 : void FindContourSurface::clearAverage(){</span>
+<span class="lineNum">     102 </span>            :   // Set the boundaries of the output grid
+<span class="lineNum">     103 </span><span class="lineCov">          6 :   std::vector&lt;double&gt; fspacing; std::vector&lt;unsigned&gt; snbins( ingrid-&gt;getDimension()-1 );</span>
+<span class="lineNum">     104 </span><span class="lineCov">          6 :   std::vector&lt;std::string&gt; smin( ingrid-&gt;getDimension()-1 ), smax( ingrid-&gt;getDimension()-1 );</span>
+<span class="lineNum">     105 </span><span class="lineCov">          9 :   for(unsigned i=0;i&lt;gdirs.size();++i){</span>
+<span class="lineNum">     106 </span><span class="lineCov">          6 :      smin[i]=ingrid-&gt;getMin()[gdirs[i]]; smax[i]=ingrid-&gt;getMax()[gdirs[i]];</span>
+<span class="lineNum">     107 </span><span class="lineCov">          6 :      snbins[i]=ingrid-&gt;getNbin()[gdirs[i]];</span>
+<span class="lineNum">     108 </span>            :   }   
+<span class="lineNum">     109 </span><span class="lineCov">          3 :   mygrid-&gt;setBounds( smin, smax, snbins, fspacing); resizeFunctions();</span>
+<span class="lineNum">     110 </span><span class="lineCov">          6 :   ActionWithAveraging::clearAverage();</span>
+<a name="111"><span class="lineNum">     111 </span><span class="lineCov">          3 : }</span></a>
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span><span class="lineCov">          3 : void FindContourSurface::prepareForAveraging(){</span>
+<span class="lineNum">     114 </span>            :   // Create a task list if first time
+<span class="lineNum">     115 </span><span class="lineCov">          3 :   if( firsttime ){</span>
+<span class="lineNum">     116 </span><span class="lineCov">          1 :       std::vector&lt;unsigned&gt; find( ingrid-&gt;getDimension() );</span>
+<span class="lineNum">     117 </span><span class="lineCov">          2 :       std::vector&lt;unsigned&gt; ind( mygrid-&gt;getDimension() );</span>
+<span class="lineNum">     118 </span><span class="lineCov">        197 :       for(unsigned i=0;i&lt;mygrid-&gt;getNumberOfPoints();++i){</span>
+<span class="lineNum">     119 </span><span class="lineCov">        196 :           find.assign( find.size(), 0 ); mygrid-&gt;getIndices( i, ind );</span>
+<span class="lineNum">     120 </span><span class="lineCov">        196 :           for(unsigned j=0;j&lt;gdirs.size();++j) find[gdirs[j]]=ind[j];</span>
+<span class="lineNum">     121 </span>            :           // Current will be set equal to the start point for this grid index
+<span class="lineNum">     122 </span><span class="lineCov">        196 :           addTaskToList( ingrid-&gt;getIndex(find) );</span>
+<span class="lineNum">     123 </span>            :       }
+<span class="lineNum">     124 </span>            :       // And prepare the task list
+<span class="lineNum">     125 </span><span class="lineCov">          1 :       deactivateAllTasks();</span>
+<span class="lineNum">     126 </span><span class="lineCov">          1 :       for(unsigned i=0;i&lt;getFullNumberOfTasks();++i) taskFlags[i]=1;</span>
+<span class="lineNum">     127 </span><span class="lineCov">          1 :       lockContributors();</span>
+<span class="lineNum">     128 </span>            :       // Set the direction in which to look for the contour
+<span class="lineNum">     129 </span><span class="lineCov">          1 :       direction.resize( ingrid-&gt;getDimension(), 0 );</span>
+<span class="lineNum">     130 </span><span class="lineCov">          2 :       direction[dir_n] = 0.999999999*ingrid-&gt;getGridSpacing()[dir_n];</span>
+<span class="lineNum">     131 </span>            :   }
+<a name="132"><span class="lineNum">     132 </span><span class="lineCov">          3 : }</span></a>
+<span class="lineNum">     133 </span>            : 
+<span class="lineNum">     134 </span><span class="lineCov">          3 : void FindContourSurface::finishAveraging(){</span>
+<span class="lineNum">     135 </span><span class="lineCov">          3 :   ContourFindingBase::finishAveraging();</span>
+<span class="lineNum">     136 </span>            :   // And update the list of active grid points
+<span class="lineNum">     137 </span><span class="lineCov">          3 :   if( gbuffer&gt;0 ){</span>
+<span class="lineNum">     138 </span><span class="lineCov">          3 :       std::vector&lt;double&gt; dx( ingrid-&gt;getGridSpacing() );</span>
+<span class="lineNum">     139 </span><span class="lineCov">          6 :       std::vector&lt;double&gt; point( ingrid-&gt;getDimension() );</span>
+<span class="lineNum">     140 </span><span class="lineCov">          6 :       std::vector&lt;double&gt; lpoint( mygrid-&gt;getDimension() );</span>
+<span class="lineNum">     141 </span><span class="lineCov">          6 :       std::vector&lt;unsigned&gt; neighbours; unsigned num_neighbours;</span>
+<span class="lineNum">     142 </span><span class="lineCov">          6 :       std::vector&lt;unsigned&gt; ugrid_indices( ingrid-&gt;getDimension() );</span>
+<span class="lineNum">     143 </span><span class="lineCov">          6 :       std::vector&lt;bool&gt; active( ingrid-&gt;getNumberOfPoints(), false ); </span>
+<span class="lineNum">     144 </span><span class="lineCov">          6 :       std::vector&lt;unsigned&gt; gbuffer_vec( ingrid-&gt;getDimension(), gbuffer );</span>
+<span class="lineNum">     145 </span><span class="lineCov">        591 :       for(unsigned i=0;i&lt;mygrid-&gt;getNumberOfPoints();++i){</span>
+<span class="lineNum">     146 </span>            :           // Retrieve the coordinates of this grid point
+<span class="lineNum">     147 </span><span class="lineCov">        588 :           mygrid-&gt;getGridPointCoordinates( i, lpoint );</span>
+<span class="lineNum">     148 </span><span class="lineCov">        588 :           point[dir_n] = mygrid-&gt;getGridElement( i, 0 );</span>
+<span class="lineNum">     149 </span>            :           // 0.5*dx added here to prevent problems with flooring of grid points
+<span class="lineNum">     150 </span><span class="lineCov">        588 :           for(unsigned j=0;j&lt;gdirs.size();++j) point[gdirs[j]]=lpoint[j] + 0.5*dx[gdirs[j]];</span>
+<span class="lineNum">     151 </span><span class="lineCov">        588 :           ingrid-&gt;getIndices( point, ugrid_indices );</span>
+<span class="lineNum">     152 </span>            :           // Now activate buffer region
+<span class="lineNum">     153 </span><span class="lineCov">        588 :           ingrid-&gt;getNeighbors( ugrid_indices , gbuffer_vec, num_neighbours, neighbours );</span>
+<span class="lineNum">     154 </span><span class="lineCov">        588 :           for(unsigned n=0;n&lt;num_neighbours;++n) active[ neighbours[n] ]=true; </span>
+<span class="lineNum">     155 </span>            :       }
+<span class="lineNum">     156 </span><span class="lineCov">          6 :       ingrid-&gt;activateThesePoints( active );</span>
+<span class="lineNum">     157 </span>            :   }
+<span class="lineNum">     158 </span><span class="lineCov">          3 :   firsttime=false;</span>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">          3 : }</span></a>
+<span class="lineNum">     160 </span>            : 
+<span class="lineNum">     161 </span><span class="lineCov">        585 : void FindContourSurface::compute( const unsigned&amp; current, MultiValue&amp; myvals ) const {</span>
+<span class="lineNum">     162 </span><span class="lineCov">        585 :   std::vector&lt;unsigned&gt; neighbours; unsigned num_neighbours; unsigned nfound=0; double minv=0, minp;</span>
+<span class="lineNum">     163 </span><span class="lineCov">       1174 :   std::vector&lt;unsigned&gt; bins_n( ingrid-&gt;getNbin() ); unsigned shiftn=current;</span>
+<span class="lineNum">     164 </span><span class="lineCov">       1176 :   std::vector&lt;unsigned&gt; ind( ingrid-&gt;getDimension() ); std::vector&lt;double&gt; point( ingrid-&gt;getDimension() );</span>
+<span class="lineNum">     165 </span>            : #ifndef DNDEBUG 
+<span class="lineNum">     166 </span><span class="lineCov">       1175 :   std::vector&lt;unsigned&gt; oind( mygrid-&gt;getDimension() ); mygrid-&gt;getIndices( current, oind ); </span>
+<span class="lineNum">     167 </span>            : #endif
+<span class="lineNum">     168 </span><span class="lineCov">      16746 :   for(unsigned i=0;i&lt;bins_n[dir_n];++i){</span>
+<span class="lineNum">     169 </span>            : #ifndef DNDEBUG
+<span class="lineNum">     170 </span><span class="lineCov">      16745 :   std::vector&lt;unsigned&gt; base_ind( ingrid-&gt;getDimension() ); ingrid-&gt;getIndices( shiftn, base_ind );</span>
+<span class="lineNum">     171 </span><span class="lineCov">      16746 :   for(unsigned j=0;j&lt;gdirs.size();++j) plumed_dbg_assert( base_ind[gdirs[j]]==oind[j] );</span>
+<span class="lineNum">     172 </span>            : #endif
+<span class="lineNum">     173 </span>            :      // Ensure inactive grid points are ignored
+<span class="lineNum">     174 </span><span class="lineCov">      16748 :      if( ingrid-&gt;inactive( shiftn ) ){ shiftn += ingrid-&gt;getStride()[dir_n]; continue; }</span>
+<span class="lineNum">     175 </span>            :      // Get the index of the current grid point
+<span class="lineNum">     176 </span><span class="lineCov">       7857 :      ingrid-&gt;getIndices( shiftn, ind );</span>
+<span class="lineNum">     177 </span>            :      // Exit if we are at the edge of the grid
+<span class="lineNum">     178 </span><span class="lineCov">       7857 :      if( !ingrid-&gt;isPeriodic(dir_n) &amp;&amp; (ind[dir_n]+1)==bins_n[dir_n] ){</span>
+<span class="lineNum">     179 </span><span class="lineNoCov">          0 :         shiftn += ingrid-&gt;getStride()[dir_n]; continue;</span>
+<span class="lineNum">     180 </span>            :      }     
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span>            :      // Ensure points with inactive neighbours are ignored
+<span class="lineNum">     183 </span><span class="lineCov">       7857 :      ingrid-&gt;getNeighbors( ind, ones, num_neighbours, neighbours );</span>
+<span class="lineNum">     184 </span><span class="lineCov">       7850 :      bool cycle=false;</span>
+<span class="lineNum">     185 </span><span class="lineCov">     178926 :      for(unsigned j=0;j&lt;num_neighbours;++j){</span>
+<span class="lineNum">     186 </span><span class="lineCov">     172661 :          if( ingrid-&gt;inactive( neighbours[j]) ){ cycle=true; break; }</span>
+<span class="lineNum">     187 </span>            :      }
+<span class="lineNum">     188 </span><span class="lineCov">       7855 :      if( cycle ){ shiftn += ingrid-&gt;getStride()[dir_n]; continue; }</span>
+<span class="lineNum">     189 </span>            : 
+<span class="lineNum">     190 </span>            :      // Now get the function value at two points
+<span class="lineNum">     191 </span><span class="lineCov">       6265 :      double val1=getFunctionValue( shiftn ) - contour; double val2;</span>
+<span class="lineNum">     192 </span><span class="lineCov">       6265 :      if( (ind[dir_n]+1)==bins_n[dir_n] ) val2 = getFunctionValue( current ) - contour;</span>
+<span class="lineNum">     193 </span><span class="lineCov">       6267 :      else val2=getFunctionValue( shiftn + ingrid-&gt;getStride()[dir_n] ) - contour;</span>
+<span class="lineNum">     194 </span>            : 
+<span class="lineNum">     195 </span>            :      // Check if the minimum is bracketed 
+<span class="lineNum">     196 </span><span class="lineCov">       6266 :      if( val1*val2&lt;0 ){ </span>
+<span class="lineNum">     197 </span><span class="lineCov">        588 :          ingrid-&gt;getGridPointCoordinates( shiftn, point ); findContour( direction, point ); </span>
+<span class="lineNum">     198 </span><span class="lineCov">        588 :          minp=point[dir_n]; nfound++; break;</span>
+<span class="lineNum">     199 </span>            :      }
+<span class="lineNum">     200 </span>            : 
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span>            :      // This moves us on to the next point
+<span class="lineNum">     203 </span><span class="lineCov">       5678 :      shiftn += ingrid-&gt;getStride()[dir_n];</span>
+<span class="lineNum">     204 </span><span class="lineCov">       5678 :   }</span>
+<span class="lineNum">     205 </span><span class="lineCov">        587 :   if( nfound==0 ){</span>
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :      std::string num; Tools::convert( getStep(), num );</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :      error(&quot;On step &quot; + num + &quot; failed to find required grid point&quot;); </span>
+<span class="lineNum">     208 </span>            :   }
+<span class="lineNum">     209 </span><span class="lineCov">       1175 :   myvals.setValue( 1, minp ); </span>
+<span class="lineNum">     210 </span><span class="lineCov">        588 : }</span>
+<a name="211"><span class="lineNum">     211 </span>            : </a>
+<span class="lineNum">     212 </span>            : }
+<span class="lineNum">     213 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

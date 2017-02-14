@@ -1,0 +1,10 @@
+Tue Feb 14 08:59:59 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/ves/rt-s2contactmodel-mpi
+++ Test type: driver
+++ Arguments: --plumed plumed.dat --mf_pdb Ching2.pdb --box 100.0,100.0,100.0
+++ Processors: 4
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/ves/rt-s2contactmodel-mpi/tmp
+Checking for ves
+Run driver
+Done. Here is the error file:

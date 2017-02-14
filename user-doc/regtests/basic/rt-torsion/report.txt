@@ -1,0 +1,9 @@
+Tue Feb 14 08:54:36 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/basic/rt-torsion
+++ Test type: driver
+++ Arguments: --plumed plumed.dat --ixyz traj.xyz
+++ Processors: 0
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/basic/rt-torsion/tmp
+Run driver
+Done. Here is the error file:

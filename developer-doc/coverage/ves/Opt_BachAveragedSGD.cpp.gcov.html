@@ -1,0 +1,285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - ves/Opt_BachAveragedSGD.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">ves</a> - Opt_BachAveragedSGD.cpp<span style="font-size: 80%;"> (source / <a href="Opt_BachAveragedSGD.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">67</td>
+            <td class="headerCovTableEntry">71</td>
+            <td class="headerCovTableEntryHi">94.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntryMed">85.7 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2016-2017 The ves-code team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE-VES file at the root of this folder for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.ves-code.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of ves-code, version 1.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    ves-code is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    ves-code is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with ves-code.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : #include &quot;Optimizer.h&quot;
+<span class="lineNum">      24 </span>            : #include &quot;CoeffsVector.h&quot;
+<span class="lineNum">      25 </span>            : #include &quot;CoeffsMatrix.h&quot;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : #include &quot;core/ActionRegister.h&quot;
+<span class="lineNum">      28 </span>            : #include &quot;core/PlumedMain.h&quot;
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : namespace PLMD{
+<span class="lineNum">      33 </span>            : namespace ves{
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : //+PLUMEDOC VES_OPTIMIZER AVERAGED_SGD
+<span class="lineNum">      36 </span>            : /*
+<span class="lineNum">      37 </span>            : Averaged stochastic gradient decent with fixed step size.
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : \par Algorithim
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            : This optimizer updates the coefficients according to the averaged stochastic gradient decent algorithm described in ref \cite Bach-NIPS-2013. This algorithm considers two sets of coefficients, the so-called instantaneous coefficients that are updated according to the recursion formula given by
+<span class="lineNum">      42 </span>            : \f[
+<span class="lineNum">      43 </span>            : \boldsymbol{\alpha}^{(n+1)} = \boldsymbol{\alpha}^{(n)} -
+<span class="lineNum">      44 </span>            : \mu \left[
+<span class="lineNum">      45 </span>            : \nabla \Omega(\bar{\boldsymbol{\alpha}}^{(n)}) +
+<span class="lineNum">      46 </span>            : \mathbf{H}(\bar{\boldsymbol{\alpha}}^{(n)})
+<span class="lineNum">      47 </span>            : [\boldsymbol{\alpha}^{(n)}-\bar{\boldsymbol{\alpha}}^{(n)}]
+<span class="lineNum">      48 </span>            : \right],
+<span class="lineNum">      49 </span>            : \f]
+<span class="lineNum">      50 </span>            : where \f$\mu\f$ is a fixed step size and the gradient \f$ \nabla\Omega(\bar{\boldsymbol{\alpha}}^{(n)})\f$ and the Hessian \f$\mathbf{H}(\bar{\boldsymbol{\alpha}}^{(n)})\f$ depend on the averaged coefficients defined as
+<span class="lineNum">      51 </span>            : \f[
+<span class="lineNum">      52 </span>            : \bar{\boldsymbol{\alpha}}^{(n)} = \frac{1}{n+1} \sum_{k=0}^{n} \boldsymbol{\alpha}^{(k)}.
+<span class="lineNum">      53 </span>            : \f]
+<span class="lineNum">      54 </span>            : This means that the bias acting on the system depends on the averaged coefficients \f$\bar{\boldsymbol{\alpha}}^{(n)}\f$ which leads to a smooth convergence of the bias and the estimated free energy surface. Furthermore, this allows for a rather short sampling time for each iteration, for classical MD simulations typical sampling times are on the order of few ps (around 1000-4000 MD steps).
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            : Currently it is only supported to employ the diagonal part of the Hessian which is generally sufficient. Support for employing the full Hessian will be added later on.
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            : The VES bias that is to be optimized should be specified using the
+<span class="lineNum">      59 </span>            : BIAS keyword.
+<span class="lineNum">      60 </span>            : The fixed step size \f$\mu\f$ is given using the STEPSIZE keyword.
+<span class="lineNum">      61 </span>            : The frequency of updating the coefficients is given using the
+<span class="lineNum">      62 </span>            : STRIDE keyword where the value is given in the number of MD steps.
+<span class="lineNum">      63 </span>            : For example, if the MD time step is 0.02 ps and STRIDE=2000 will the
+<span class="lineNum">      64 </span>            : coefficients be updated every 4 ps.
+<span class="lineNum">      65 </span>            : The coefficients will be outputted to the file given by the
+<span class="lineNum">      66 </span>            : COEFFS_FILE keyword. How often the coefficients are written
+<span class="lineNum">      67 </span>            : to this file is controlled by the COEFFS_OUTPUT keyword.
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : \par Multiple walkers
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : This optimizer supports the usage of multiple walkers where different copies of the system share the same bias potential (i.e. coefficients) and cooperatively sample the averages needed for the gradient and Hessian. This can significantly help with convergence in difficult cases. It is of course best to start the different copies from different positions in CV space. To activate this option you just need to add the MULTIPLE_WALKERS flag. Note that this is only supported if the MD code support running multiple replicas connected via MPI.
+<span class="lineNum">      73 </span>            : 
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span>            : \par Examples
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            : */
+<span class="lineNum">      79 </span>            : //+ENDPLUMEDOC
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span>            : class Opt_BachAveragedSGD : public Optimizer {
+<span class="lineNum">      82 </span>            : private:
+<span class="lineNum">      83 </span>            :   std::vector&lt;CoeffsVector*&gt; combinedgradient_pntrs_;
+<span class="lineNum">      84 </span>            :   unsigned int combinedgradient_wstride_;
+<span class="lineNum">      85 </span>            :   std::vector&lt;OFile*&gt; combinedgradientOFiles_;
+<a name="86"><span class="lineNum">      86 </span>            :   double decaying_aver_tau_;</a>
+<span class="lineNum">      87 </span>            : private:
+<span class="lineNum">      88 </span><span class="lineCov">         30 :   CoeffsVector&amp; CombinedGradient(const unsigned int c_id) const {return *combinedgradient_pntrs_[c_id];}</span>
+<span class="lineNum">      89 </span>            :   double getAverDecay() const;
+<span class="lineNum">      90 </span>            : public:
+<span class="lineNum">      91 </span>            :   static void registerKeywords(Keywords&amp;);
+<span class="lineNum">      92 </span>            :   explicit Opt_BachAveragedSGD(const ActionOptions&amp;);
+<span class="lineNum">      93 </span>            :   ~Opt_BachAveragedSGD();
+<span class="lineNum">      94 </span>            :   void coeffsUpdate(const unsigned int c_id = 0);
+<span class="lineNum">      95 </span>            : };
+<a name="96"><span class="lineNum">      96 </span>            : </a>
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span><span class="lineCov">       4054 : PLUMED_REGISTER_ACTION(Opt_BachAveragedSGD,&quot;AVERAGED_SGD&quot;)</span>
+<a name="99"><span class="lineNum">      99 </span>            : </a>
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span><span class="lineCov">         42 : void Opt_BachAveragedSGD::registerKeywords(Keywords&amp; keys){</span>
+<span class="lineNum">     102 </span><span class="lineCov">         42 :   Optimizer::registerKeywords(keys);</span>
+<span class="lineNum">     103 </span><span class="lineCov">         42 :   Optimizer::useFixedStepSizeKeywords(keys);</span>
+<span class="lineNum">     104 </span><span class="lineCov">         42 :   Optimizer::useMultipleWalkersKeywords(keys);</span>
+<span class="lineNum">     105 </span><span class="lineCov">         42 :   Optimizer::useHessianKeywords(keys);</span>
+<span class="lineNum">     106 </span><span class="lineCov">         42 :   Optimizer::useMaskKeywords(keys);</span>
+<span class="lineNum">     107 </span><span class="lineCov">         42 :   Optimizer::useRestartKeywords(keys);</span>
+<span class="lineNum">     108 </span>            :   // Optimizer::useMonitorAveragesKeywords(keys);
+<span class="lineNum">     109 </span><span class="lineCov">         42 :   Optimizer::useDynamicTargetDistributionKeywords(keys);</span>
+<span class="lineNum">     110 </span><span class="lineCov">         42 :   keys.add(&quot;hidden&quot;,&quot;COMBINED_GRADIENT_FILE&quot;,&quot;the name of output file for the combined gradient (gradient + Hessian term)&quot;);</span>
+<span class="lineNum">     111 </span><span class="lineCov">         42 :   keys.add(&quot;hidden&quot;,&quot;COMBINED_GRADIENT_OUTPUT&quot;,&quot;how often the combined gradient should be written to file. This parameter is given as the number of bias iterations. It is by default 100 if COMBINED_GRADIENT_FILE is specficed&quot;);</span>
+<span class="lineNum">     112 </span><span class="lineCov">         42 :   keys.add(&quot;hidden&quot;,&quot;COMBINED_GRADIENT_FMT&quot;,&quot;specify format for combined gradient file(s) (useful for decrease the number of digits in regtests)&quot;);</span>
+<span class="lineNum">     113 </span><span class="lineCov">         42 :   keys.add(&quot;optional&quot;,&quot;EXP_DECAYING_AVER&quot;,&quot;calculate the averaged coefficients using exponentially decaying averaging using the decaying constant given here in the number of iterations&quot;);</span>
+<span class="lineNum">     114 </span><span class="lineCov">         42 : }</span>
+<a name="115"><span class="lineNum">     115 </span>            : </a>
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span><span class="lineCov">        160 : Opt_BachAveragedSGD::~Opt_BachAveragedSGD(){</span>
+<span class="lineNum">     118 </span><span class="lineCov">         43 :   for(unsigned int i=0; i&lt;combinedgradient_pntrs_.size(); i++){</span>
+<span class="lineNum">     119 </span><span class="lineCov">          3 :     delete combinedgradient_pntrs_[i];</span>
+<span class="lineNum">     120 </span>            :   }
+<span class="lineNum">     121 </span><span class="lineCov">         43 :   for(unsigned int i=0; i&lt;combinedgradientOFiles_.size(); i++){</span>
+<span class="lineNum">     122 </span><span class="lineCov">          3 :     combinedgradientOFiles_[i]-&gt;close();</span>
+<span class="lineNum">     123 </span><span class="lineCov">          3 :     delete combinedgradientOFiles_[i];</span>
+<span class="lineNum">     124 </span>            :   }
+<span class="lineNum">     125 </span><span class="lineCov">        120 : }</span>
+<a name="126"><span class="lineNum">     126 </span>            : </a>
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span><span class="lineCov">         40 : Opt_BachAveragedSGD::Opt_BachAveragedSGD(const ActionOptions&amp;ao):</span>
+<span class="lineNum">     129 </span>            : PLUMED_OPTIMIZER_INIT(ao),
+<span class="lineNum">     130 </span>            : combinedgradient_pntrs_(0),
+<span class="lineNum">     131 </span>            : combinedgradient_wstride_(100),
+<span class="lineNum">     132 </span>            : combinedgradientOFiles_(0),
+<span class="lineNum">     133 </span><span class="lineCov">         40 : decaying_aver_tau_(0.0)</span>
+<span class="lineNum">     134 </span>            : {
+<span class="lineNum">     135 </span><span class="lineCov">         40 :   log &lt;&lt; plumed.cite(&quot;Bach and Moulines, NIPS 26, 773-781 (2013)&quot;);</span>
+<span class="lineNum">     136 </span><span class="lineCov">         40 :   unsigned int decaying_aver_tau_int=0;</span>
+<span class="lineNum">     137 </span><span class="lineCov">         40 :   parse(&quot;EXP_DECAYING_AVER&quot;,decaying_aver_tau_int);</span>
+<span class="lineNum">     138 </span><span class="lineCov">         40 :   if(decaying_aver_tau_int&gt;0){</span>
+<span class="lineNum">     139 </span><span class="lineCov">          2 :     decaying_aver_tau_ = static_cast&lt;double&gt;(decaying_aver_tau_int);</span>
+<span class="lineNum">     140 </span><span class="lineCov">          2 :     log.printf(&quot;  Coefficients calculated using an exponentially decaying average with a decaying constant of %u iterations\n&quot;,decaying_aver_tau_int);</span>
+<span class="lineNum">     141 </span>            :   }
+<span class="lineNum">     142 </span>            :   //
+<span class="lineNum">     143 </span><span class="lineCov">         40 :   std::vector&lt;std::string&gt; combinedgradient_fnames;</span>
+<span class="lineNum">     144 </span><span class="lineCov">         40 :   parseFilenames(&quot;COMBINED_GRADIENT_FILE&quot;,combinedgradient_fnames);</span>
+<span class="lineNum">     145 </span><span class="lineCov">         40 :   parse(&quot;COMBINED_GRADIENT_OUTPUT&quot;,combinedgradient_wstride_);</span>
+<span class="lineNum">     146 </span><span class="lineCov">         40 :   setupOFiles(combinedgradient_fnames,combinedgradientOFiles_,useMultipleWalkers());</span>
+<span class="lineNum">     147 </span><span class="lineCov">         80 :   std::string combinedgradient_fmt=&quot;&quot;;</span>
+<span class="lineNum">     148 </span><span class="lineCov">         40 :   parse(&quot;COMBINED_GRADIENT_FMT&quot;,combinedgradient_fmt);</span>
+<span class="lineNum">     149 </span><span class="lineCov">         40 :   if(combinedgradient_fnames.size()&gt;0){</span>
+<span class="lineNum">     150 </span><span class="lineCov">          6 :     for(unsigned int i=0; i&lt;numberOfCoeffsSets(); i++){</span>
+<span class="lineNum">     151 </span><span class="lineCov">          3 :       CoeffsVector* combinedgradient_tmp = new CoeffsVector(*getGradientPntrs()[i]);</span>
+<span class="lineNum">     152 </span><span class="lineCov">          3 :       std::string label = getGradientPntrs()[i]-&gt;getLabel();</span>
+<span class="lineNum">     153 </span><span class="lineCov">          3 :       if(label.find(&quot;gradient&quot;)!=std::string::npos){</span>
+<span class="lineNum">     154 </span><span class="lineCov">          3 :         label.replace(label.find(&quot;gradient&quot;), std::string(&quot;gradient&quot;).length(), &quot;combined_gradient&quot;);</span>
+<span class="lineNum">     155 </span>            :       }
+<span class="lineNum">     156 </span>            :       else {
+<span class="lineNum">     157 </span><span class="lineNoCov">          0 :         label += &quot;_combined&quot;;</span>
+<span class="lineNum">     158 </span>            :       }
+<span class="lineNum">     159 </span><span class="lineCov">          3 :       combinedgradient_tmp-&gt;setLabels(label);</span>
+<span class="lineNum">     160 </span><span class="lineCov">          3 :       if(combinedgradient_fmt.size()&gt;0){</span>
+<span class="lineNum">     161 </span><span class="lineCov">          3 :         combinedgradient_tmp-&gt;setOutputFmt(combinedgradient_fmt);</span>
+<span class="lineNum">     162 </span>            :       }
+<span class="lineNum">     163 </span><span class="lineCov">          3 :       combinedgradient_pntrs_.push_back(combinedgradient_tmp);</span>
+<span class="lineNum">     164 </span><span class="lineCov">          3 :     }</span>
+<span class="lineNum">     165 </span>            :     //
+<span class="lineNum">     166 </span><span class="lineCov">          3 :     if(numberOfCoeffsSets()==1){</span>
+<span class="lineNum">     167 </span><span class="lineCov">          3 :       log.printf(&quot;  Combined gradient (gradient + Hessian term) will be written out to file %s every %u iterations\n&quot;,combinedgradientOFiles_[0]-&gt;getPath().c_str(),combinedgradient_wstride_);</span>
+<span class="lineNum">     168 </span>            :     }
+<span class="lineNum">     169 </span>            :     else {
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 :       log.printf(&quot;  Combined gradient (gradient + Hessian term) will be written out to the following files every %u iterations:\n&quot;,combinedgradient_wstride_);</span>
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :       for(unsigned int i=0; i&lt;combinedgradientOFiles_.size(); i++){</span>
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :         log.printf(&quot;   coefficient set %u: %s\n&quot;,i,combinedgradientOFiles_[i]-&gt;getPath().c_str());</span>
+<span class="lineNum">     173 </span>            :       }
+<span class="lineNum">     174 </span>            :     }
+<span class="lineNum">     175 </span>            :   }
+<span class="lineNum">     176 </span>            :   //
+<span class="lineNum">     177 </span>            : 
+<span class="lineNum">     178 </span><span class="lineCov">         40 :   turnOnHessian();</span>
+<span class="lineNum">     179 </span><span class="lineCov">         80 :   checkRead();</span>
+<span class="lineNum">     180 </span><span class="lineCov">         40 : }</span>
+<a name="181"><span class="lineNum">     181 </span>            : </a>
+<span class="lineNum">     182 </span>            : 
+<span class="lineNum">     183 </span><span class="lineCov">        370 : void Opt_BachAveragedSGD::coeffsUpdate(const unsigned int c_id) {</span>
+<span class="lineNum">     184 </span>            :   //
+<span class="lineNum">     185 </span><span class="lineCov">        370 :   if(combinedgradientOFiles_.size()&gt;0 &amp;&amp; (getIterationCounter()+1)%combinedgradient_wstride_==0){</span>
+<span class="lineNum">     186 </span><span class="lineCov">         30 :     CombinedGradient(c_id).setValues( ( Gradient(c_id) + Hessian(c_id)*(AuxCoeffs(c_id)-Coeffs(c_id)) ) );</span>
+<span class="lineNum">     187 </span><span class="lineCov">         30 :     combinedgradient_pntrs_[c_id]-&gt;setIterationCounterAndTime(getIterationCounter()+1,getTime());</span>
+<span class="lineNum">     188 </span><span class="lineCov">         30 :     combinedgradient_pntrs_[c_id]-&gt;writeToFile(*combinedgradientOFiles_[c_id]);</span>
+<span class="lineNum">     189 </span>            :   }
+<span class="lineNum">     190 </span>            :   //
+<span class="lineNum">     191 </span><span class="lineCov">        370 :   double aver_decay = getAverDecay();</span>
+<span class="lineNum">     192 </span><span class="lineCov">        370 :   AuxCoeffs(c_id) += - StepSize(c_id)*CoeffsMask(c_id) * ( Gradient(c_id) + Hessian(c_id)*(AuxCoeffs(c_id)-Coeffs(c_id)) );</span>
+<span class="lineNum">     193 </span>            :   //AuxCoeffs() = AuxCoeffs() - StepSize() * ( Gradient() + Hessian()*(AuxCoeffs()-Coeffs()) );
+<span class="lineNum">     194 </span><span class="lineCov">        370 :   Coeffs(c_id) += aver_decay * ( AuxCoeffs(c_id)-Coeffs(c_id) );</span>
+<span class="lineNum">     195 </span><span class="lineCov">        370 : }</span>
+<span class="lineNum">     196 </span>            : 
+<a name="197"><span class="lineNum">     197 </span>            : </a>
+<span class="lineNum">     198 </span>            : inline
+<span class="lineNum">     199 </span><span class="lineCov">        370 : double Opt_BachAveragedSGD::getAverDecay() const {</span>
+<span class="lineNum">     200 </span><span class="lineCov">        370 :   double aver_decay = 1.0 / ( getIterationCounterDbl() + 1.0 );</span>
+<span class="lineNum">     201 </span><span class="lineCov">        370 :   if(decaying_aver_tau_ &gt; 0.0 &amp;&amp; (getIterationCounterDbl() + 1.0) &gt; decaying_aver_tau_){</span>
+<span class="lineNum">     202 </span><span class="lineCov">         14 :     aver_decay = 1.0 / decaying_aver_tau_;</span>
+<span class="lineNum">     203 </span>            :   }
+<span class="lineNum">     204 </span><span class="lineCov">        370 :   return aver_decay;</span>
+<span class="lineNum">     205 </span>            : }
+<span class="lineNum">     206 </span>            : 
+<a name="207"><span class="lineNum">     207 </span>            : </a>
+<span class="lineNum">     208 </span>            : }
+<span class="lineNum">     209 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

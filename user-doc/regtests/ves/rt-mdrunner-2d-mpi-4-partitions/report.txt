@@ -1,0 +1,10 @@
+Tue Feb 14 08:59:47 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/ves/rt-mdrunner-2d-mpi-4-partitions
+++ Test type: cltool
+++ Arguments: md_linearexpansion input
+++ Processors: 4
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/ves/rt-mdrunner-2d-mpi-4-partitions/tmp
+Checking for ves
+Run cltool
+Done. Here is the error file:

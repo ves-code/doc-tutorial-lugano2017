@@ -1,0 +1,16 @@
+Tue Feb 14 08:53:58 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/basic/rt-make-2
+++ Test type: make
+++ Arguments: 
+++ Processors: 3
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/basic/rt-make-2/tmp
+Run Make
+Done. Here is the error file:
+In file included from main.cpp:1:0:
+/usr/lib/openmpi/include/mpi.h:139:35: warning: ISO C++ 1998 does not support ‘long long’ [-Wlong-long]
+ #define OMPI_MPI_OFFSET_TYPE long long
+                                   ^
+/usr/lib/openmpi/include/mpi.h:318:9: note: in expansion of macro ‘OMPI_MPI_OFFSET_TYPE’
+ typedef OMPI_MPI_OFFSET_TYPE MPI_Offset;
+         ^

@@ -1,0 +1,20 @@
+<map id="PLMD::multicolvar::MultiColvarFunction" name="PLMD::multicolvar::MultiColvarFunction">
+<area shape="rect" id="node7" href="$class_p_l_m_d_1_1adjmat_1_1_action_with_input_matrix.html" title="PLMD::adjmat::ActionWith\lInputMatrix" alt="" coords="757,126,936,167"/>
+<area shape="rect" id="node14" href="$class_p_l_m_d_1_1crystallization_1_1_inter_molecular_torsions.html" title="Provides the keyword INTERMOLECULARTORSIONS &#160;" alt="" coords="765,191,928,233"/>
+<area shape="rect" id="node15" href="$class_p_l_m_d_1_1crystallization_1_1_orientation_sphere.html" title="PLMD::crystallization\l::OrientationSphere" alt="" coords="773,257,920,298"/>
+<area shape="rect" id="node18" href="$class_p_l_m_d_1_1multicolvar_1_1_local_average.html" title="Provides the keyword LOCAL_AVERAGE &#160;" alt="" coords="777,322,916,363"/>
+<area shape="rect" id="node19" href="$class_p_l_m_d_1_1multicolvar_1_1_number_of_links.html" title="Provides the keyword NLINKS &#160;" alt="" coords="777,387,916,429"/>
+<area shape="rect" id="node2" href="$class_p_l_m_d_1_1multicolvar_1_1_multi_colvar_base.html" title="PLMD::multicolvar::\lMultiColvarBase" alt="" coords="384,257,523,298"/>
+<area shape="rect" id="node3" href="$class_p_l_m_d_1_1_action_atomistic.html" title="Action used to create objects that access the positions of the atoms from the MD code. " alt="" coords="167,213,326,240"/>
+<area shape="rect" id="node4" href="$class_p_l_m_d_1_1_action.html" title="Base class for all the input Actions. " alt="" coords="5,264,109,291"/>
+<area shape="rect" id="node5" href="$class_p_l_m_d_1_1_action_with_value.html" title="Used to create a PLMD::Action that has some scalar or vectorial output that may or may not have some ..." alt="" coords="165,264,329,291"/>
+<area shape="rect" id="node6" href="$class_p_l_m_d_1_1vesselbase_1_1_action_with_vessel.html" title="This is used to create PLMD::Action objects that are computed by calculating the same function multip..." alt="" coords="157,315,336,357"/>
+<area shape="rect" id="node8" href="$class_p_l_m_d_1_1adjmat_1_1_clustering_base.html" title="PLMD::adjmat::ClusteringBase" alt="" coords="997,43,1200,69"/>
+<area shape="rect" id="node11" href="$class_p_l_m_d_1_1adjmat_1_1_matrix_column_sums.html" title="Provides the keyword COLUMNSUMS &#160;" alt="" coords="984,93,1213,120"/>
+<area shape="rect" id="node12" href="$class_p_l_m_d_1_1adjmat_1_1_matrix_row_sums.html" title="Provides the keyword ROWSUMS &#160;" alt="" coords="993,144,1204,171"/>
+<area shape="rect" id="node13" href="$class_p_l_m_d_1_1adjmat_1_1_sprint.html" title="Provides the keyword SPRINT &#160;" alt="" coords="1025,195,1173,221"/>
+<area shape="rect" id="node9" href="$class_p_l_m_d_1_1adjmat_1_1_cluster_with_surface.html" title="Provides the keyword CLUSTER_WITHSURFACE &#160;" alt="" coords="1270,6,1453,47"/>
+<area shape="rect" id="node10" href="$class_p_l_m_d_1_1adjmat_1_1_d_f_s_clustering.html" title="Provides the keyword DFSCLUSTERING &#160;" alt="" coords="1261,72,1461,99"/>
+<area shape="rect" id="node16" href="$class_p_l_m_d_1_1crystallization_1_1_local_steinhardt.html" title="PLMD::crystallization\l::LocalSteinhardt\&lt; T \&gt;" alt="" coords="1023,251,1175,293"/>
+<area shape="rect" id="node17" href="$class_p_l_m_d_1_1crystallization_1_1_s_m_a_c.html" title="Provides the keyword SMAC &#160;" alt="" coords="1025,317,1172,358"/>
+</map>

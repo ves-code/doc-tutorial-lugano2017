@@ -1,0 +1,346 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - colvar/PRE.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">colvar</a> - PRE.cpp<span style="font-size: 80%;"> (source / <a href="PRE.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">117</td>
+            <td class="headerCovTableEntry">134</td>
+            <td class="headerCovTableEntryMed">87.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntryMed">84.6 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2015,2016 The plumed team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : #include &quot;Colvar.h&quot;
+<span class="lineNum">      23 </span>            : #include &quot;ActionRegister.h&quot;
+<span class="lineNum">      24 </span>            : #include &quot;tools/NeighborList.h&quot;
+<span class="lineNum">      25 </span>            : #include &quot;tools/OpenMP.h&quot;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : #include &lt;string&gt;
+<span class="lineNum">      28 </span>            : #include &lt;cmath&gt;
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : using namespace std;
+<span class="lineNum">      31 </span>            : 
+<span class="lineNum">      32 </span>            : namespace PLMD {
+<span class="lineNum">      33 </span>            : namespace colvar {
+<span class="lineNum">      34 </span>            : 
+<span class="lineNum">      35 </span>            : //+PLUMEDOC COLVAR PRE 
+<span class="lineNum">      36 </span>            : /*
+<span class="lineNum">      37 </span>            : Calculates the Paramegnetic Resonance Enhancement  intensity ratio between two atoms.
+<span class="lineNum">      38 </span>            : The reference atom for the spin label is added with SPINLABEL, the affected atom(s)
+<span class="lineNum">      39 </span>            : are give as numbered GROUPA1, GROUPA2, ...
+<span class="lineNum">      40 </span>            : The additional parameters needed for the calculation are given as INEPT, the inept
+<span class="lineNum">      41 </span>            : time, TAUC the correlation time, OMEGA, the larmor frequency and RTWO for the relaxation
+<span class="lineNum">      42 </span>            : time.
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span>            : \par Examples
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            : In the following example five PRE intensities are calculated using the distance between the
+<span class="lineNum">      47 </span>            : oxigen of the spin label and the backbone hydrogens. Omega is the NMR frequency, RTWO the
+<span class="lineNum">      48 </span>            : R2 for the hydrogens, INEPT of 8 ms for the experiment and a TAUC of 1.21 ns
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            : \verbatim
+<span class="lineNum">      51 </span>            : PRE ...
+<span class="lineNum">      52 </span>            : LABEL=HN_pre
+<span class="lineNum">      53 </span>            : INEPT=8
+<span class="lineNum">      54 </span>            : TAUC=1.21
+<span class="lineNum">      55 </span>            : OMEGA=900
+<span class="lineNum">      56 </span>            : SPINLABEL=1818
+<span class="lineNum">      57 </span>            : GROUPA1=86  RTWO1=0.0120272827
+<span class="lineNum">      58 </span>            : GROUPA2=177 RTWO2=0.0263953158
+<span class="lineNum">      59 </span>            : GROUPA3=285 RTWO3=0.0058899829
+<span class="lineNum">      60 </span>            : GROUPA4=335 RTWO4=0.0102072646
+<span class="lineNum">      61 </span>            : GROUPA5=451 RTWO5=0.0086341843
+<span class="lineNum">      62 </span>            : ... PRE
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            : PRINT ARG=HN_pre.* FILE=PRE.dat STRIDE=1
+<span class="lineNum">      65 </span>            : 
+<span class="lineNum">      66 </span>            : \endverbatim
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span>            : */
+<span class="lineNum">      69 </span>            : //+ENDPLUMEDOC
+<span class="lineNum">      70 </span>            : 
+<span class="lineNum">      71 </span>            : class PRE : public Colvar {   
+<span class="lineNum">      72 </span>            : private:
+<span class="lineNum">      73 </span>            :   bool             pbc;
+<span class="lineNum">      74 </span>            :   double           constant, inept;
+<span class="lineNum">      75 </span>            :   vector&lt;double&gt;   rtwo;
+<span class="lineNum">      76 </span>            :   vector&lt;unsigned&gt; nga;
+<span class="lineNum">      77 </span>            :   NeighborList     *nl;
+<span class="lineNum">      78 </span>            : public:
+<span class="lineNum">      79 </span>            :   static void registerKeywords( Keywords&amp; keys );
+<span class="lineNum">      80 </span>            :   explicit PRE(const ActionOptions&amp;);
+<span class="lineNum">      81 </span>            :   ~PRE();
+<span class="lineNum">      82 </span>            :   virtual void calculate();
+<a name="83"><span class="lineNum">      83 </span>            : };</a>
+<span class="lineNum">      84 </span>            : 
+<a name="85"><span class="lineNum">      85 </span><span class="lineCov">       4016 : PLUMED_REGISTER_ACTION(PRE,&quot;PRE&quot;)</span></a>
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span><span class="lineCov">          4 : void PRE::registerKeywords( Keywords&amp; keys ){</span>
+<span class="lineNum">      88 </span><span class="lineCov">          4 :   Colvar::registerKeywords( keys );</span>
+<span class="lineNum">      89 </span><span class="lineCov">          4 :   componentsAreNotOptional(keys);</span>
+<span class="lineNum">      90 </span><span class="lineCov">          4 :   useCustomisableComponents(keys);</span>
+<span class="lineNum">      91 </span><span class="lineCov">          4 :   keys.add(&quot;compulsory&quot;,&quot;INEPT&quot;,&quot;is the INEPT time (in ms).&quot;);</span>
+<span class="lineNum">      92 </span><span class="lineCov">          4 :   keys.add(&quot;compulsory&quot;,&quot;TAUC&quot;,&quot;is the correlation time (in ns) for this electron-nuclear interaction.&quot;);</span>
+<span class="lineNum">      93 </span><span class="lineCov">          4 :   keys.add(&quot;compulsory&quot;,&quot;OMEGA&quot;,&quot;is the Larmor frequency of the nuclear spin (in MHz).&quot;);</span>
+<span class="lineNum">      94 </span><span class="lineCov">          4 :   keys.add(&quot;atoms&quot;,&quot;SPINLABEL&quot;,&quot;The atom to be used as the paramagnetic center.&quot;);</span>
+<span class="lineNum">      95 </span>            :   keys.add(&quot;numbered&quot;,&quot;GROUPA&quot;,&quot;the atoms involved in each of the contacts you wish to calculate. &quot;
+<span class="lineNum">      96 </span>            :                    &quot;Keywords like GROUPA1, GROUPA2, GROUPA3,... should be listed and one contact will be &quot;
+<span class="lineNum">      97 </span><span class="lineCov">          4 :                    &quot;calculated for each ATOM keyword you specify.&quot;);</span>
+<span class="lineNum">      98 </span><span class="lineCov">          4 :   keys.reset_style(&quot;GROUPA&quot;,&quot;atoms&quot;);</span>
+<span class="lineNum">      99 </span>            :   keys.add(&quot;numbered&quot;,&quot;RTWO&quot;,&quot;The relaxation of the atom/atoms in the corresponding GROUPA of atoms. &quot;
+<span class="lineNum">     100 </span><span class="lineCov">          4 :                    &quot;Keywords like RTWO1, RTWO2, RTWO3,... should be listed.&quot;);</span>
+<span class="lineNum">     101 </span><span class="lineCov">          4 :   keys.addFlag(&quot;ADDEXP&quot;,false,&quot;Set to TRUE if you want to have fixed components with the experimetnal values.&quot;);  </span>
+<span class="lineNum">     102 </span><span class="lineCov">          4 :   keys.add(&quot;numbered&quot;,&quot;PREINT&quot;,&quot;Add an experimental value for each PRE.&quot;);</span>
+<span class="lineNum">     103 </span><span class="lineCov">          4 :   keys.addOutputComponent(&quot;pre&quot;,&quot;default&quot;,&quot;the # PRE&quot;);</span>
+<span class="lineNum">     104 </span><span class="lineCov">          4 :   keys.addOutputComponent(&quot;exp&quot;,&quot;ADDEXP&quot;,&quot;the # PRE experimental intensity&quot;);</span>
+<a name="105"><span class="lineNum">     105 </span><span class="lineCov">          4 : }</span></a>
+<span class="lineNum">     106 </span>            : 
+<span class="lineNum">     107 </span><span class="lineCov">          2 : PRE::PRE(const ActionOptions&amp;ao):</span>
+<span class="lineNum">     108 </span>            : PLUMED_COLVAR_INIT(ao),
+<span class="lineNum">     109 </span><span class="lineCov">          2 : pbc(true)</span>
+<span class="lineNum">     110 </span>            : {
+<span class="lineNum">     111 </span><span class="lineCov">          2 :   bool nopbc=!pbc;</span>
+<span class="lineNum">     112 </span><span class="lineCov">          2 :   parseFlag(&quot;NOPBC&quot;,nopbc);</span>
+<span class="lineNum">     113 </span><span class="lineCov">          2 :   pbc=!nopbc;  </span>
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span><span class="lineCov">          2 :   vector&lt;AtomNumber&gt; atom;</span>
+<span class="lineNum">     116 </span><span class="lineCov">          2 :   parseAtomList(&quot;SPINLABEL&quot;,atom);</span>
+<span class="lineNum">     117 </span><span class="lineCov">          2 :   if(atom.size()!=1) error(&quot;Number of specified atom should be 1&quot;);</span>
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            :   // Read in the atoms
+<span class="lineNum">     120 </span><span class="lineCov">          4 :   vector&lt;AtomNumber&gt; t, ga_lista, gb_lista;</span>
+<span class="lineNum">     121 </span><span class="lineCov">          8 :   for(int i=1;;++i ){</span>
+<span class="lineNum">     122 </span><span class="lineCov">          8 :      parseAtomList(&quot;GROUPA&quot;, i, t );</span>
+<span class="lineNum">     123 </span><span class="lineCov">          8 :      if( t.empty() ) break;</span>
+<span class="lineNum">     124 </span><span class="lineCov">          6 :      for(unsigned j=0;j&lt;t.size();j++) {ga_lista.push_back(t[j]); gb_lista.push_back(atom[0]);}</span>
+<span class="lineNum">     125 </span><span class="lineCov">          6 :      nga.push_back(t.size());</span>
+<span class="lineNum">     126 </span><span class="lineCov">          6 :      t.resize(0); </span>
+<span class="lineNum">     127 </span><span class="lineCov">          6 :   }</span>
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span>            :   // Read in reference values
+<span class="lineNum">     130 </span><span class="lineCov">          2 :   rtwo.resize( nga.size() ); </span>
+<span class="lineNum">     131 </span><span class="lineCov">          2 :   unsigned ntarget=0;</span>
+<span class="lineNum">     132 </span><span class="lineCov">          2 :   for(unsigned i=0;i&lt;nga.size();++i){</span>
+<span class="lineNum">     133 </span><span class="lineCov">          2 :      if( !parseNumbered( &quot;RTWO&quot;, i+1, rtwo[i] ) ) break;</span>
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :      ntarget++; </span>
+<span class="lineNum">     135 </span>            :   }
+<span class="lineNum">     136 </span><span class="lineCov">          2 :   if( ntarget==0 ){</span>
+<span class="lineNum">     137 </span><span class="lineCov">          2 :       parse(&quot;RTWO&quot;,rtwo[0]);</span>
+<span class="lineNum">     138 </span><span class="lineCov">          2 :       for(unsigned i=1;i&lt;nga.size();++i) rtwo[i]=rtwo[0];</span>
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :   } else if( ntarget!=nga.size() ) error(&quot;found wrong number of RTWO values&quot;);</span>
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span><span class="lineCov">          2 :   double tauc=0.;</span>
+<span class="lineNum">     142 </span><span class="lineCov">          2 :   parse(&quot;TAUC&quot;,tauc);</span>
+<span class="lineNum">     143 </span><span class="lineCov">          2 :   if(tauc==0.) error(&quot;TAUC must be set&quot;);</span>
+<span class="lineNum">     144 </span>            : 
+<span class="lineNum">     145 </span><span class="lineCov">          2 :   double omega=0.;</span>
+<span class="lineNum">     146 </span><span class="lineCov">          2 :   parse(&quot;OMEGA&quot;,omega);</span>
+<span class="lineNum">     147 </span><span class="lineCov">          2 :   if(omega==0.) error(&quot;OMEGA must be set&quot;);</span>
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span><span class="lineCov">          2 :   inept=0.;</span>
+<span class="lineNum">     150 </span><span class="lineCov">          2 :   parse(&quot;INEPT&quot;,inept);</span>
+<span class="lineNum">     151 </span><span class="lineCov">          2 :   if(inept==0.) error(&quot;INEPT must be set&quot;);</span>
+<span class="lineNum">     152 </span><span class="lineCov">          2 :   inept *= 0.001; // ms2s</span>
+<span class="lineNum">     153 </span>            : 
+<span class="lineNum">     154 </span><span class="lineCov">          2 :   const double ns2s   = 0.000000001;</span>
+<span class="lineNum">     155 </span><span class="lineCov">          2 :   const double MHz2Hz = 1000000.;</span>
+<span class="lineNum">     156 </span><span class="lineCov">          2 :   const double Kappa  = 12300000000.00; // this is 1/15*S*(S+1)*gamma^2*g^2*beta^2 </span>
+<span class="lineNum">     157 </span>            :                                         // where gamma is the nuclear gyromagnetic ratio, 
+<span class="lineNum">     158 </span>            :                                         // g is the electronic g factor, and beta is the Bohr magneton
+<span class="lineNum">     159 </span>            :                                         // in nm^6/s^2
+<span class="lineNum">     160 </span><span class="lineCov">          2 :   constant = (4.*tauc*ns2s+(3.*tauc*ns2s)/(1+omega*omega*MHz2Hz*MHz2Hz*tauc*tauc*ns2s*ns2s))*Kappa;</span>
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span><span class="lineCov">          2 :   bool addexp=false;</span>
+<span class="lineNum">     163 </span><span class="lineCov">          2 :   parseFlag(&quot;ADDEXP&quot;,addexp);</span>
+<span class="lineNum">     164 </span>            : 
+<span class="lineNum">     165 </span><span class="lineCov">          4 :   vector&lt;double&gt; exppre;</span>
+<span class="lineNum">     166 </span><span class="lineCov">          2 :   if(addexp) {</span>
+<span class="lineNum">     167 </span><span class="lineNoCov">          0 :     exppre.resize( nga.size() ); </span>
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :     unsigned ntarget=0;</span>
+<span class="lineNum">     169 </span>            : 
+<span class="lineNum">     170 </span><span class="lineNoCov">          0 :     for(unsigned i=0;i&lt;nga.size();++i){</span>
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :        if( !parseNumbered( &quot;PREINT&quot;, i+1, exppre[i] ) ) break;</span>
+<span class="lineNum">     172 </span><span class="lineNoCov">          0 :        ntarget++; </span>
+<span class="lineNum">     173 </span>            :     }
+<span class="lineNum">     174 </span><span class="lineNoCov">          0 :     if( ntarget!=nga.size() ) error(&quot;found wrong number of PREINT values&quot;);</span>
+<span class="lineNum">     175 </span>            :   }
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span>            :   // Create neighbour lists
+<span class="lineNum">     178 </span><span class="lineCov">          2 :   nl= new NeighborList(gb_lista,ga_lista,true,pbc,getPbc());</span>
+<span class="lineNum">     179 </span>            : 
+<span class="lineNum">     180 </span>            :   // Ouput details of all contacts
+<span class="lineNum">     181 </span><span class="lineCov">          2 :   unsigned index=0; </span>
+<span class="lineNum">     182 </span><span class="lineCov">          8 :   for(unsigned i=0;i&lt;nga.size();++i){</span>
+<span class="lineNum">     183 </span><span class="lineCov">          6 :     log.printf(&quot;  The %uth PRE is calculated using %u equivalent atoms:\n&quot;, i, nga[i]);</span>
+<span class="lineNum">     184 </span><span class="lineCov">          6 :     log.printf(&quot;    %d&quot;, ga_lista[index].serial());</span>
+<span class="lineNum">     185 </span><span class="lineCov">          6 :     index++;</span>
+<span class="lineNum">     186 </span><span class="lineCov">          8 :     for(unsigned j=1;j&lt;nga[i];j++) {</span>
+<span class="lineNum">     187 </span><span class="lineCov">          2 :       log.printf(&quot; %d&quot;, ga_lista[index].serial());</span>
+<span class="lineNum">     188 </span><span class="lineCov">          2 :       index++;</span>
+<span class="lineNum">     189 </span>            :     }
+<span class="lineNum">     190 </span><span class="lineCov">          6 :     log.printf(&quot;\n&quot;);</span>
+<span class="lineNum">     191 </span>            :   }
+<span class="lineNum">     192 </span>            : 
+<span class="lineNum">     193 </span><span class="lineCov">          2 :   if(pbc)      log.printf(&quot;  using periodic boundary conditions\n&quot;);</span>
+<span class="lineNum">     194 </span><span class="lineNoCov">          0 :   else         log.printf(&quot;  without periodic boundary conditions\n&quot;);</span>
+<span class="lineNum">     195 </span>            : 
+<span class="lineNum">     196 </span><span class="lineCov">          8 :   for(unsigned i=0;i&lt;nga.size();i++) {</span>
+<span class="lineNum">     197 </span><span class="lineCov">          6 :     string num; Tools::convert(i,num);</span>
+<span class="lineNum">     198 </span><span class="lineCov">          6 :     addComponentWithDerivatives(&quot;pre_&quot;+num);</span>
+<span class="lineNum">     199 </span><span class="lineCov">          6 :     componentIsNotPeriodic(&quot;pre_&quot;+num);</span>
+<span class="lineNum">     200 </span><span class="lineCov">          6 :   }</span>
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span><span class="lineCov">          2 :   if(addexp) {</span>
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :     for(unsigned i=0;i&lt;nga.size();i++) {</span>
+<span class="lineNum">     204 </span><span class="lineNoCov">          0 :       string num; Tools::convert(i,num);</span>
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 :       addComponent(&quot;exp_&quot;+num);</span>
+<span class="lineNum">     206 </span><span class="lineNoCov">          0 :       componentIsNotPeriodic(&quot;exp_&quot;+num);</span>
+<span class="lineNum">     207 </span><span class="lineNoCov">          0 :       Value* comp=getPntrToComponent(&quot;exp_&quot;+num); </span>
+<span class="lineNum">     208 </span><span class="lineNoCov">          0 :       comp-&gt;set(exppre[i]);</span>
+<span class="lineNum">     209 </span><span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     210 </span>            :   }
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span><span class="lineCov">          2 :   requestAtoms(nl-&gt;getFullAtomList());</span>
+<span class="lineNum">     213 </span><span class="lineCov">          4 :   checkRead();</span>
+<a name="214"><span class="lineNum">     214 </span><span class="lineCov">          2 : }</span></a>
+<span class="lineNum">     215 </span>            : 
+<span class="lineNum">     216 </span><span class="lineCov">          8 : PRE::~PRE(){</span>
+<span class="lineNum">     217 </span><span class="lineCov">          2 :   delete nl;</span>
+<a name="218"><span class="lineNum">     218 </span><span class="lineCov">          6 : } </span></a>
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span><span class="lineCov">        175 : void PRE::calculate()</span>
+<a name="221"><span class="lineNum">     221 </span>            : {</a>
+<span class="lineNum">     222 </span>            : // cycle over the number of PRE
+<span class="lineNum">     223 </span><span class="lineCov">        524 : #pragma omp parallel for num_threads(OpenMP::getNumThreads()) </span>
+<span class="lineNum">     224 </span><span class="lineCov">        349 :   for(unsigned i=0;i&lt;nga.size();i++) {</span>
+<span class="lineNum">     225 </span><span class="lineCov">        525 :     vector&lt;Vector&gt; deriv; </span>
+<span class="lineNum">     226 </span><span class="lineCov">        525 :     Tensor dervir;</span>
+<span class="lineNum">     227 </span><span class="lineCov">        524 :     double pre=0;</span>
+<span class="lineNum">     228 </span><span class="lineCov">        524 :     unsigned index=0;</span>
+<span class="lineNum">     229 </span><span class="lineCov">       1049 :     for(unsigned k=0; k&lt;i; k++) index+=nga[k]; </span>
+<span class="lineNum">     230 </span>            :     // cycle over equivalent atoms 
+<span class="lineNum">     231 </span><span class="lineCov">       1224 :     for(unsigned j=0;j&lt;nga[i];j++) {</span>
+<span class="lineNum">     232 </span><span class="lineCov">        700 :       const double c_aver=constant/((double)nga[i]);</span>
+<span class="lineNum">     233 </span>            :       // the first atom is always the same (the paramagnetic group)
+<span class="lineNum">     234 </span><span class="lineCov">        700 :       const unsigned i0=nl-&gt;getClosePair(index+j).first;</span>
+<span class="lineNum">     235 </span><span class="lineCov">        698 :       const unsigned i1=nl-&gt;getClosePair(index+j).second;</span>
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span><span class="lineCov">        699 :       Vector distance;</span>
+<span class="lineNum">     238 </span><span class="lineCov">       1394 :       if(pbc) distance=pbcDistance(getPosition(i0),getPosition(i1));</span>
+<span class="lineNum">     239 </span><span class="lineNoCov">          0 :       else    distance=delta(getPosition(i0),getPosition(i1));</span>
+<span class="lineNum">     240 </span>            : 
+<span class="lineNum">     241 </span><span class="lineCov">        696 :       const double r2=distance.modulo2();</span>
+<span class="lineNum">     242 </span><span class="lineCov">        694 :       const double r6=r2*r2*r2;</span>
+<span class="lineNum">     243 </span><span class="lineCov">        694 :       const double r8=r6*r2;</span>
+<span class="lineNum">     244 </span><span class="lineCov">        694 :       const double tmpir6=c_aver/r6;</span>
+<span class="lineNum">     245 </span><span class="lineCov">        694 :       const double tmpir8=-6.*c_aver/r8;</span>
+<span class="lineNum">     246 </span>            : 
+<span class="lineNum">     247 </span><span class="lineCov">        694 :       pre += tmpir6;</span>
+<span class="lineNum">     248 </span>            : 
+<span class="lineNum">     249 </span><span class="lineCov">        694 :       Vector tmpv = -tmpir8*distance;</span>
+<span class="lineNum">     250 </span><span class="lineCov">        696 :       deriv.push_back(tmpv);</span>
+<span class="lineNum">     251 </span><span class="lineCov">        697 :       dervir   +=  Tensor(distance,tmpv);</span>
+<span class="lineNum">     252 </span>            :     }
+<span class="lineNum">     253 </span><span class="lineCov">        525 :     const double ratio = rtwo[i]*exp(-pre*inept) / (rtwo[i]+pre);</span>
+<span class="lineNum">     254 </span><span class="lineCov">        525 :     const double fact = -ratio*(inept+1./(rtwo[i]+pre));</span>
+<span class="lineNum">     255 </span>            : 
+<span class="lineNum">     256 </span><span class="lineCov">        525 :     Value* val=getPntrToComponent(i);</span>
+<span class="lineNum">     257 </span><span class="lineCov">        525 :     val-&gt;set(ratio);</span>
+<span class="lineNum">     258 </span><span class="lineCov">        525 :     setBoxDerivatives(val, fact*dervir);</span>
+<span class="lineNum">     259 </span>            : 
+<span class="lineNum">     260 </span><span class="lineCov">       1225 :     for(unsigned j=0;j&lt;nga[i];j++) {</span>
+<span class="lineNum">     261 </span><span class="lineCov">        699 :       const unsigned i0=nl-&gt;getClosePair(index+j).first;</span>
+<span class="lineNum">     262 </span><span class="lineCov">        699 :       const unsigned i1=nl-&gt;getClosePair(index+j).second;</span>
+<span class="lineNum">     263 </span><span class="lineCov">        699 :       setAtomsDerivatives(val, i0,  fact*deriv[j]);</span>
+<span class="lineNum">     264 </span><span class="lineCov">        700 :       setAtomsDerivatives(val, i1, -fact*deriv[j]);</span>
+<span class="lineNum">     265 </span><span class="lineCov">        525 :     }</span>
+<span class="lineNum">     266 </span>            :   }
+<span class="lineNum">     267 </span><span class="lineCov">        175 : }</span>
+<a name="268"><span class="lineNum">     268 </span>            : </a>
+<span class="lineNum">     269 </span>            : }
+<span class="lineNum">     270 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

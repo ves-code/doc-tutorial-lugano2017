@@ -1,0 +1,9 @@
+Tue Feb 14 08:57:39 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/mapping/rt-pathtools-2
+++ Test type: plumed
+++ Arguments: pathtools --start start.pdb --end end.pdb --nframes 1 --metric OPTIMAL --out mypath.pdb
+++ Processors: 0
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/mapping/rt-pathtools-2/tmp
+Run plumed
+Done. Here is the error file:

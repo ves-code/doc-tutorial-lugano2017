@@ -1,0 +1,8 @@
+Tue Feb 14 08:52:40 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/basic/rt77
+++ Test type: 
+++ Arguments: 
+++ Processors: 0
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/basic/rt77/tmp
+unknown test type

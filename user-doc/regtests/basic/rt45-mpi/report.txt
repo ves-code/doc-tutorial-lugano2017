@@ -1,0 +1,9 @@
+Tue Feb 14 08:50:19 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/basic/rt45-mpi
+++ Test type: driver
+++ Arguments: --plumed plumed.dat --mf_pdb traj.pdb --multi 2 --dump-forces atom_forces
+++ Processors: 4
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/basic/rt45-mpi/tmp
+Run driver
+Done. Here is the error file:

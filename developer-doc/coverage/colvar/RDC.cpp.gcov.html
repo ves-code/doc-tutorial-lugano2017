@@ -1,0 +1,441 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - colvar/RDC.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">colvar</a> - RDC.cpp<span style="font-size: 80%;"> (source / <a href="RDC.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">149</td>
+            <td class="headerCovTableEntry">153</td>
+            <td class="headerCovTableEntryHi">97.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryHi">90.9 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2014-2016 The plumed team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : #include &quot;Colvar.h&quot;
+<span class="lineNum">      24 </span>            : #include &quot;ActionRegister.h&quot;
+<span class="lineNum">      25 </span>            : #include &quot;core/PlumedMain.h&quot;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : #ifdef __PLUMED_HAS_GSL
+<span class="lineNum">      28 </span>            : #include &lt;gsl/gsl_vector.h&gt;
+<span class="lineNum">      29 </span>            : #include &lt;gsl/gsl_matrix.h&gt;
+<span class="lineNum">      30 </span>            : #include &lt;gsl/gsl_linalg.h&gt;
+<span class="lineNum">      31 </span>            : #include &lt;gsl/gsl_blas.h&gt;
+<span class="lineNum">      32 </span>            : #endif
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : using namespace std;
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : namespace PLMD{
+<span class="lineNum">      37 </span>            : namespace colvar{
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span>            : //+PLUMEDOC COLVAR RDC 
+<span class="lineNum">      40 </span>            : /*
+<span class="lineNum">      41 </span>            : Calculates the (Residual) Dipolar Coupling between two atoms. 
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            : The RDC between two atomic nuclei depends on the \f$\theta\f$ angle between 
+<span class="lineNum">      44 </span>            : the inter-nuclear vector and the external magnetic field. In isotropic media RDCs average to zero because of the orientational 
+<span class="lineNum">      45 </span>            : averaging, but when the rotational symmetry is broken, either through the introduction of an alignment medium or for molecules 
+<span class="lineNum">      46 </span>            : with highly anisotropic paramagnetic susceptibility, RDCs become measurable.
+<span class="lineNum">      47 </span>            : 
+<span class="lineNum">      48 </span>            : \f[
+<span class="lineNum">      49 </span>            : D=D_{max}0.5(3\cos^2(\theta)-1)
+<span class="lineNum">      50 </span>            : \f]
+<span class="lineNum">      51 </span>            : 
+<span class="lineNum">      52 </span>            : where
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span>            : \f[
+<span class="lineNum">      55 </span>            : D_{max}=-\mu_0\gamma_1\gamma_2h/(8\pi^3r^3)
+<span class="lineNum">      56 </span>            : \f]
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            : that is the maximal value of the dipolar coupling for the two nuclear spins with gyromagnetic ratio \f$\gamma\f$. 
+<span class="lineNum">      59 </span>            : \f$\mu\f$ is the magnetic constant and h is the Planck constant. 
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            : Common Gyromagnetic Ratios (C.G.S)
+<span class="lineNum">      62 </span>            : - H(1) 26.7513
+<span class="lineNum">      63 </span>            : - C(13) 6.7261
+<span class="lineNum">      64 </span>            : - N(15) -2.7116
+<span class="lineNum">      65 </span>            : - NH -72.5388
+<span class="lineNum">      66 </span>            : - CH 179.9319
+<span class="lineNum">      67 </span>            : - CN -18.2385
+<span class="lineNum">      68 </span>            : - CC 45.2404
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : This collective variable calculates the Residual Dipolar Coupling for a set of couple of atoms using the above definition. 
+<span class="lineNum">      71 </span>            : From the calculated RDCs and a set of experimental values it calculates either their correlation or the squared quality factor 
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span>            : \f[
+<span class="lineNum">      74 </span>            : Q^2=\frac{\sum_i(D_i-D^{exp}_i)^2}{\sum_i(D^{exp}_i)^2}
+<span class="lineNum">      75 </span>            : \f]
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span>            : RDCs report only on the fraction of molecules that is aligned, this means that comparing the RDCs from a single structure in
+<span class="lineNum">      78 </span>            : a MD simulation to the experimental values is not particularly meaningfull, from this point of view it is better to compare
+<span class="lineNum">      79 </span>            : their correlation. The fraction of aligned molecules can be obtained by maximising the correlation between the calculated and 
+<span class="lineNum">      80 </span>            : the experimental RDCs. This fraction can be used as a scaling factor in the calculation of the RDCs in order to compare their
+<span class="lineNum">      81 </span>            : values. The averaging of the RDCs calculated with the above definition from a standard MD should result to 0 because of
+<span class="lineNum">      82 </span>            : the rotational diffusion, but this variable can be used to break the rotational symmetry.
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span>            : RDCs can also be calculated using a Single Value Decomposition approach, in this case the code rely on the
+<span class="lineNum">      85 </span>            : a set of function from the GNU Scientific Library (GSL). (With SVD forces are not currently implemented).
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span>            : Replica-Averaged restrained simulations can be performed with this CV and the function \ref ENSEMBLE.
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            : Additional material and examples can be also found in the tutorial \ref belfast-9
+<span class="lineNum">      90 </span>            : 
+<span class="lineNum">      91 </span>            : \par Examples
+<span class="lineNum">      92 </span>            : In the following example five N-H RDCs are defined and their correlation with
+<span class="lineNum">      93 </span>            : respect to a set of experimental data is calculated and restrained. In addition,
+<span class="lineNum">      94 </span>            : and only for analysis purposes, the same RDCs are calculated using a Single Value
+<span class="lineNum">      95 </span>            : Decomposition algorithm. 
+<span class="lineNum">      96 </span>            : 
+<span class="lineNum">      97 </span>            : \verbatim
+<span class="lineNum">      98 </span>            : RDC ...
+<span class="lineNum">      99 </span>            : GYROM=-72.5388
+<span class="lineNum">     100 </span>            : SCALE=1.0 
+<span class="lineNum">     101 </span>            : ATOMS1=20,21
+<span class="lineNum">     102 </span>            : ATOMS2=37,38
+<span class="lineNum">     103 </span>            : ATOMS3=56,57
+<span class="lineNum">     104 </span>            : ATOMS4=76,77
+<span class="lineNum">     105 </span>            : ATOMS5=92,93
+<span class="lineNum">     106 </span>            : LABEL=nh
+<span class="lineNum">     107 </span>            : ... RDC
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            : STATS ARG=nh.* PARAMETERS=8.17,-8.271,-10.489,-9.871,-9.152
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span>            : rdce: RESTRAINT ARG=nh.corr KAPPA=0. SLOPE=-25000.0 AT=1.
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            : RDC ...
+<span class="lineNum">     114 </span>            : GYROM=-72.5388
+<span class="lineNum">     115 </span>            : SCALE=1.0
+<span class="lineNum">     116 </span>            : SVD 
+<span class="lineNum">     117 </span>            : ATOMS1=20,21 COUPLING1=8.17
+<span class="lineNum">     118 </span>            : ATOMS2=37,38 COUPLING2=-8.271
+<span class="lineNum">     119 </span>            : ATOMS3=56,57 COUPLING3=-10.489
+<span class="lineNum">     120 </span>            : ATOMS4=76,77 COUPLING4=-9.871
+<span class="lineNum">     121 </span>            : ATOMS5=92,93 COUPLING5=-9.152
+<span class="lineNum">     122 </span>            : LABEL=svd
+<span class="lineNum">     123 </span>            : ... RDC
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span>            : PRINT ARG=nh.corr,rdce.bias FILE=colvar
+<span class="lineNum">     126 </span>            : PRINT ARG=svd.* FILE=svd
+<span class="lineNum">     127 </span>            : \endverbatim
+<span class="lineNum">     128 </span>            : (See also \ref PRINT, \ref RESTRAINT) 
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span>            : */
+<a name="131"><span class="lineNum">     131 </span>            : //+ENDPLUMEDOC</a>
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span><span class="lineCov">         26 : class RDC : public Colvar {</span>
+<span class="lineNum">     134 </span>            : private:
+<span class="lineNum">     135 </span>            :   const double   Const;
+<span class="lineNum">     136 </span>            :   double         mu_s;
+<span class="lineNum">     137 </span>            :   double         scale;
+<span class="lineNum">     138 </span>            :   vector&lt;double&gt; coupl;
+<span class="lineNum">     139 </span>            :   bool           svd;
+<span class="lineNum">     140 </span>            :   bool           pbc;
+<span class="lineNum">     141 </span>            : public:
+<span class="lineNum">     142 </span>            :   explicit RDC(const ActionOptions&amp;);
+<span class="lineNum">     143 </span>            :   static void registerKeywords( Keywords&amp; keys );
+<span class="lineNum">     144 </span>            :   virtual void calculate();
+<a name="145"><span class="lineNum">     145 </span>            : };</a>
+<span class="lineNum">     146 </span>            : 
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">       4027 : PLUMED_REGISTER_ACTION(RDC,&quot;RDC&quot;)</span></a>
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span><span class="lineCov">         15 : void RDC::registerKeywords( Keywords&amp; keys ){</span>
+<span class="lineNum">     150 </span><span class="lineCov">         15 :   Colvar::registerKeywords( keys );</span>
+<span class="lineNum">     151 </span><span class="lineCov">         15 :   componentsAreNotOptional(keys);</span>
+<span class="lineNum">     152 </span><span class="lineCov">         15 :   useCustomisableComponents(keys);</span>
+<span class="lineNum">     153 </span>            :   keys.add(&quot;numbered&quot;,&quot;ATOMS&quot;,&quot;the couple of atoms involved in each of the bonds for which you wish to calculate the RDC. &quot;
+<span class="lineNum">     154 </span>            :                              &quot;Keywords like ATOMS1, ATOMS2, ATOMS3,... should be listed and one dipolar coupling will be &quot;
+<span class="lineNum">     155 </span><span class="lineCov">         15 :                              &quot;calculated for each ATOMS keyword you specify.&quot;);</span>
+<span class="lineNum">     156 </span><span class="lineCov">         15 :   keys.reset_style(&quot;ATOMS&quot;,&quot;atoms&quot;);</span>
+<span class="lineNum">     157 </span><span class="lineCov">         15 :   keys.add(&quot;compulsory&quot;,&quot;GYROM&quot;,&quot;Add the product of the gyromagnetic constants for the bond. &quot;);</span>
+<span class="lineNum">     158 </span><span class="lineCov">         15 :   keys.add(&quot;compulsory&quot;,&quot;SCALE&quot;,&quot;Add the scaling factor to take into account concentration and other effects. &quot;);</span>
+<span class="lineNum">     159 </span><span class="lineCov">         15 :   keys.addFlag(&quot;SVD&quot;,false,&quot;Set to TRUE if you want to backcalculate using Single Value Decomposition (need GSL at compilation time).&quot;); </span>
+<span class="lineNum">     160 </span><span class="lineCov">         15 :   keys.addFlag(&quot;ADDCOUPLINGS&quot;,false,&quot;Set to TRUE if you want to have fixed components with the experimetnal values.&quot;);  </span>
+<span class="lineNum">     161 </span><span class="lineCov">         15 :   keys.add(&quot;numbered&quot;,&quot;COUPLING&quot;,&quot;Add an experimental value for each coupling (needed by SVD and usefull for \ref STATS).&quot;);</span>
+<span class="lineNum">     162 </span><span class="lineCov">         15 :   keys.addOutputComponent(&quot;rdc&quot;,&quot;default&quot;,&quot;the calculated # RDC&quot;);</span>
+<span class="lineNum">     163 </span><span class="lineCov">         15 :   keys.addOutputComponent(&quot;exp&quot;,&quot;SVD/ADDCOUPLINGS&quot;,&quot;the experimental # RDC&quot;);</span>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">         15 : }</span></a>
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span><span class="lineCov">         13 : RDC::RDC(const ActionOptions&amp;ao):</span>
+<span class="lineNum">     167 </span>            : PLUMED_COLVAR_INIT(ao),
+<span class="lineNum">     168 </span>            : Const(0.3356806),
+<span class="lineNum">     169 </span>            : mu_s(0),
+<span class="lineNum">     170 </span>            : scale(1),
+<span class="lineNum">     171 </span><span class="lineCov">         13 : pbc(true)</span>
+<span class="lineNum">     172 </span>            : {
+<span class="lineNum">     173 </span><span class="lineCov">         13 :   bool nopbc=!pbc;</span>
+<span class="lineNum">     174 </span><span class="lineCov">         13 :   parseFlag(&quot;NOPBC&quot;,nopbc);</span>
+<span class="lineNum">     175 </span><span class="lineCov">         13 :   pbc=!nopbc;  </span>
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span>            :   // Read in the atoms
+<span class="lineNum">     178 </span><span class="lineCov">         26 :   vector&lt;AtomNumber&gt; t, atoms;</span>
+<span class="lineNum">     179 </span><span class="lineCov">         66 :   for(int i=1;;++i ){</span>
+<span class="lineNum">     180 </span><span class="lineCov">         66 :      parseAtomList(&quot;ATOMS&quot;, i, t );</span>
+<span class="lineNum">     181 </span><span class="lineCov">         66 :      if( t.empty() ) break;</span>
+<span class="lineNum">     182 </span><span class="lineCov">         53 :      if( t.size()!=2 ){</span>
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :          std::string ss; Tools::convert(i,ss);</span>
+<span class="lineNum">     184 </span><span class="lineNoCov">          0 :          error(&quot;ATOMS&quot; + ss + &quot; keyword has the wrong number of atoms&quot;);</span>
+<span class="lineNum">     185 </span>            :      }
+<span class="lineNum">     186 </span><span class="lineCov">         53 :      atoms.push_back(t[0]);</span>
+<span class="lineNum">     187 </span><span class="lineCov">         53 :      atoms.push_back(t[1]);</span>
+<span class="lineNum">     188 </span><span class="lineCov">         53 :      t.resize(0); </span>
+<span class="lineNum">     189 </span><span class="lineCov">         53 :   }</span>
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span><span class="lineCov">         13 :   const unsigned ndata = atoms.size()/2;</span>
+<span class="lineNum">     192 </span>            :  
+<span class="lineNum">     193 </span>            :   // Read in GYROMAGNETIC constants
+<span class="lineNum">     194 </span><span class="lineCov">         13 :   parse(&quot;GYROM&quot;, mu_s);</span>
+<span class="lineNum">     195 </span><span class="lineCov">         13 :   if(mu_s==0.) error(&quot;GYROM must be set&quot;);</span>
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span>            :   // Read in SCALING factors 
+<span class="lineNum">     198 </span><span class="lineCov">         13 :   parse(&quot;SCALE&quot;, scale);</span>
+<span class="lineNum">     199 </span><span class="lineCov">         13 :   if(scale==0.) error(&quot;SCALE must be different from 0&quot;);</span>
+<span class="lineNum">     200 </span>            : 
+<span class="lineNum">     201 </span><span class="lineCov">         13 :   svd=false;</span>
+<span class="lineNum">     202 </span><span class="lineCov">         13 :   parseFlag(&quot;SVD&quot;,svd);</span>
+<span class="lineNum">     203 </span>            : #ifndef __PLUMED_HAS_GSL
+<span class="lineNum">     204 </span>            :   if(svd) error(&quot;You CANNOT use SVD without GSL. Recompile PLUMED with GSL!\n&quot;);
+<span class="lineNum">     205 </span>            : #endif
+<span class="lineNum">     206 </span>            : 
+<span class="lineNum">     207 </span><span class="lineCov">         13 :   bool addcoupling=false;</span>
+<span class="lineNum">     208 </span><span class="lineCov">         13 :   parseFlag(&quot;ADDCOUPLINGS&quot;,addcoupling);</span>
+<span class="lineNum">     209 </span>            : 
+<span class="lineNum">     210 </span><span class="lineCov">         13 :   if(svd||addcoupling) {</span>
+<span class="lineNum">     211 </span><span class="lineCov">          1 :     coupl.resize( ndata ); </span>
+<span class="lineNum">     212 </span><span class="lineCov">          1 :     unsigned ntarget=0;</span>
+<span class="lineNum">     213 </span><span class="lineCov">          6 :     for(unsigned i=0;i&lt;ndata;++i){</span>
+<span class="lineNum">     214 </span><span class="lineCov">          5 :        if( !parseNumbered( &quot;COUPLING&quot;, i+1, coupl[i] ) ) break;</span>
+<span class="lineNum">     215 </span><span class="lineCov">          5 :        ntarget++; </span>
+<span class="lineNum">     216 </span>            :     }
+<span class="lineNum">     217 </span><span class="lineCov">          1 :     if( ntarget!=ndata ) error(&quot;found wrong number of COUPLING values&quot;);</span>
+<span class="lineNum">     218 </span>            :   }
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span>            :   // Ouput details of all contacts 
+<span class="lineNum">     221 </span><span class="lineCov">         13 :   log.printf(&quot;  Gyromagnetic moment is %f. Scaling factor is %f.&quot;,mu_s,scale);</span>
+<span class="lineNum">     222 </span><span class="lineCov">         66 :   for(unsigned i=0;i&lt;ndata;++i){</span>
+<span class="lineNum">     223 </span><span class="lineCov">         53 :     log.printf(&quot;  The %uth Bond Dipolar Coupling is calculated from atoms : %d %d.&quot;, i+1, atoms[2*i].serial(), atoms[2*i+1].serial()); </span>
+<span class="lineNum">     224 </span><span class="lineCov">         53 :     if(svd||addcoupling) log.printf(&quot; Experimental coupling is %f.&quot;, coupl[i]);</span>
+<span class="lineNum">     225 </span><span class="lineCov">         53 :     log.printf(&quot;\n&quot;);</span>
+<span class="lineNum">     226 </span>            :   }
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span><span class="lineCov">         13 :   log&lt;&lt;&quot;  Bibliography &quot;</span>
+<span class="lineNum">     229 </span><span class="lineCov">         39 :      &lt;&lt;plumed.cite(&quot;Camilloni C, Vendruscolo M, J. Phys. Chem. B 119, 653 (2015)&quot;)</span>
+<span class="lineNum">     230 </span><span class="lineCov">         39 :      &lt;&lt;plumed.cite(&quot;Camilloni C, Vendruscolo M, Biochemistry 54, 7470 (2015)&quot;) &lt;&lt;&quot;\n&quot;;</span>
+<span class="lineNum">     231 </span>            : 
+<span class="lineNum">     232 </span><span class="lineCov">         13 :   checkRead();</span>
+<span class="lineNum">     233 </span>            : 
+<span class="lineNum">     234 </span><span class="lineCov">         66 :   for(unsigned i=0;i&lt;ndata;i++) {</span>
+<span class="lineNum">     235 </span><span class="lineCov">         53 :     std::string num; Tools::convert(i,num);</span>
+<span class="lineNum">     236 </span><span class="lineCov">         53 :     if(!svd) {</span>
+<span class="lineNum">     237 </span><span class="lineCov">         48 :       addComponentWithDerivatives(&quot;rdc_&quot;+num);</span>
+<span class="lineNum">     238 </span><span class="lineCov">         48 :       componentIsNotPeriodic(&quot;rdc_&quot;+num);</span>
+<span class="lineNum">     239 </span>            :     } else {
+<span class="lineNum">     240 </span><span class="lineCov">          5 :       addComponent(&quot;rdc_&quot;+num);</span>
+<span class="lineNum">     241 </span><span class="lineCov">          5 :       componentIsNotPeriodic(&quot;rdc_&quot;+num);</span>
+<span class="lineNum">     242 </span>            :     }
+<span class="lineNum">     243 </span><span class="lineCov">         53 :   }</span>
+<span class="lineNum">     244 </span>            : 
+<span class="lineNum">     245 </span><span class="lineCov">         13 :   if(svd||addcoupling) {</span>
+<span class="lineNum">     246 </span><span class="lineCov">          6 :     for(unsigned i=0;i&lt;ndata;i++) {</span>
+<span class="lineNum">     247 </span><span class="lineCov">          5 :       std::string num; Tools::convert(i,num);</span>
+<span class="lineNum">     248 </span><span class="lineCov">          5 :       addComponent(&quot;exp_&quot;+num);</span>
+<span class="lineNum">     249 </span><span class="lineCov">          5 :       componentIsNotPeriodic(&quot;exp_&quot;+num);</span>
+<span class="lineNum">     250 </span><span class="lineCov">          5 :       Value* comp=getPntrToComponent(&quot;exp_&quot;+num); comp-&gt;set(coupl[i]);</span>
+<span class="lineNum">     251 </span><span class="lineCov">          5 :     }</span>
+<span class="lineNum">     252 </span>            :   }
+<span class="lineNum">     253 </span>            : 
+<span class="lineNum">     254 </span><span class="lineCov">         26 :   requestAtoms(atoms);</span>
+<a name="255"><span class="lineNum">     255 </span><span class="lineCov">         13 : }</span></a>
+<span class="lineNum">     256 </span>            : 
+<span class="lineNum">     257 </span><span class="lineCov">        300 : void RDC::calculate()</span>
+<span class="lineNum">     258 </span>            : {
+<span class="lineNum">     259 </span><span class="lineCov">        300 :   if(!svd) {</span>
+<span class="lineNum">     260 </span><span class="lineCov">        295 :     const double max  = -Const*scale*mu_s;</span>
+<span class="lineNum">     261 </span><span class="lineCov">        295 :     const unsigned N=getNumberOfAtoms();</span>
+<span class="lineNum">     262 </span>            :     /* RDC Calculations and forces */
+<span class="lineNum">     263 </span><span class="lineCov">       1475 :     for(unsigned r=0;r&lt;N;r+=2)</span>
+<span class="lineNum">     264 </span>            :     {
+<span class="lineNum">     265 </span><span class="lineCov">       1180 :       const unsigned index=r/2;</span>
+<span class="lineNum">     266 </span><span class="lineCov">       1180 :       Vector       distance;</span>
+<span class="lineNum">     267 </span><span class="lineCov">       1180 :       if(pbc)      distance = pbcDistance(getPosition(r),getPosition(r+1));</span>
+<span class="lineNum">     268 </span><span class="lineNoCov">          0 :       else         distance = delta(getPosition(r),getPosition(r+1));</span>
+<span class="lineNum">     269 </span><span class="lineCov">       1180 :       const double d    = distance.modulo();</span>
+<span class="lineNum">     270 </span><span class="lineCov">       1180 :       const double ind  = 1./d;</span>
+<span class="lineNum">     271 </span><span class="lineCov">       1180 :       const double id3  = ind*ind*ind; </span>
+<span class="lineNum">     272 </span><span class="lineCov">       1180 :       const double dmax = id3*max;</span>
+<span class="lineNum">     273 </span><span class="lineCov">       1180 :       const double cos_theta = distance[2]*ind;</span>
+<span class="lineNum">     274 </span>            : 
+<span class="lineNum">     275 </span><span class="lineCov">       1180 :       const double rdc = 0.5*dmax*(3.*cos_theta*cos_theta-1.);</span>
+<span class="lineNum">     276 </span>            : 
+<span class="lineNum">     277 </span><span class="lineCov">       1180 :       const double id7  = id3*id3*ind;</span>
+<span class="lineNum">     278 </span><span class="lineCov">       1180 :       const double id9  = id7*ind*ind;</span>
+<span class="lineNum">     279 </span><span class="lineCov">       1180 :       const double x2=distance[0]*distance[0];</span>
+<span class="lineNum">     280 </span><span class="lineCov">       1180 :       const double y2=distance[1]*distance[1];</span>
+<span class="lineNum">     281 </span><span class="lineCov">       1180 :       const double z2=distance[2]*distance[2];</span>
+<span class="lineNum">     282 </span><span class="lineCov">       1180 :       const double prod = -max*id7*(1.5*x2 +1.5*y2 -6.*z2);</span>
+<span class="lineNum">     283 </span>            : 
+<span class="lineNum">     284 </span><span class="lineCov">       1180 :       Vector dRDC;</span>
+<span class="lineNum">     285 </span><span class="lineCov">       1180 :       dRDC[0] = prod*distance[0];</span>
+<span class="lineNum">     286 </span><span class="lineCov">       1180 :       dRDC[1] = prod*distance[1];</span>
+<span class="lineNum">     287 </span><span class="lineCov">       1180 :       dRDC[2] = -max*id9*distance[2]*(4.5*x2*x2 + 4.5*y2*y2 + 1.5*y2*z2 - 3.*z2*z2 + x2*(9.*y2 + 1.5*z2));</span>
+<span class="lineNum">     288 </span>            : 
+<span class="lineNum">     289 </span><span class="lineCov">       1180 :       Value* val=getPntrToComponent(index);</span>
+<span class="lineNum">     290 </span><span class="lineCov">       1180 :       val-&gt;set(rdc);</span>
+<span class="lineNum">     291 </span><span class="lineCov">       1180 :       setBoxDerivatives(val, Tensor(distance,dRDC));</span>
+<span class="lineNum">     292 </span><span class="lineCov">       1180 :       setAtomsDerivatives(val, r  ,  dRDC);</span>
+<span class="lineNum">     293 </span><span class="lineCov">       1180 :       setAtomsDerivatives(val, r+1, -dRDC); </span>
+<span class="lineNum">     294 </span>            :     }
+<span class="lineNum">     295 </span>            : 
+<span class="lineNum">     296 </span>            :   } else {
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span>            : #ifdef __PLUMED_HAS_GSL
+<span class="lineNum">     299 </span>            :     gsl_vector *rdc_vec, *S, *Stmp, *work, *bc;
+<span class="lineNum">     300 </span>            :     gsl_matrix *coef_mat, *A, *V;
+<span class="lineNum">     301 </span><span class="lineCov">          5 :     rdc_vec = gsl_vector_alloc(coupl.size());</span>
+<span class="lineNum">     302 </span><span class="lineCov">          5 :     bc = gsl_vector_alloc(coupl.size());</span>
+<span class="lineNum">     303 </span><span class="lineCov">          5 :     Stmp = gsl_vector_alloc(5);</span>
+<span class="lineNum">     304 </span><span class="lineCov">          5 :     S = gsl_vector_alloc(5);</span>
+<span class="lineNum">     305 </span><span class="lineCov">          5 :     work = gsl_vector_alloc(5);</span>
+<span class="lineNum">     306 </span><span class="lineCov">          5 :     coef_mat = gsl_matrix_alloc(coupl.size(),5);</span>
+<span class="lineNum">     307 </span><span class="lineCov">          5 :     A = gsl_matrix_alloc(coupl.size(),5);</span>
+<span class="lineNum">     308 </span><span class="lineCov">          5 :     V = gsl_matrix_alloc(5,5);</span>
+<span class="lineNum">     309 </span><span class="lineCov">          5 :     gsl_matrix_set_zero(coef_mat);</span>
+<span class="lineNum">     310 </span><span class="lineCov">          5 :     gsl_vector_set_zero(bc);</span>
+<span class="lineNum">     311 </span><span class="lineCov">          5 :     unsigned index=0;</span>
+<span class="lineNum">     312 </span><span class="lineCov">          5 :     vector&lt;double&gt; dmax(coupl.size());</span>
+<span class="lineNum">     313 </span><span class="lineCov">         30 :     for(unsigned r=0; r&lt;getNumberOfAtoms(); r+=2) {</span>
+<span class="lineNum">     314 </span><span class="lineCov">         25 :       Vector  distance;</span>
+<span class="lineNum">     315 </span><span class="lineCov">         25 :       if(pbc) distance = pbcDistance(getPosition(r),getPosition(r+1));</span>
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :       else    distance = delta(getPosition(r),getPosition(r+1));</span>
+<span class="lineNum">     317 </span><span class="lineCov">         25 :       double d    = distance.modulo();</span>
+<span class="lineNum">     318 </span><span class="lineCov">         25 :       double d2   = d*d;</span>
+<span class="lineNum">     319 </span><span class="lineCov">         25 :       double d3   = d2*d;</span>
+<span class="lineNum">     320 </span><span class="lineCov">         25 :       double id3  = 1./d3; </span>
+<span class="lineNum">     321 </span><span class="lineCov">         25 :       double max  = -Const*mu_s*scale;</span>
+<span class="lineNum">     322 </span><span class="lineCov">         25 :       dmax[index] = id3*max;</span>
+<span class="lineNum">     323 </span><span class="lineCov">         25 :       double mu_x = distance[0]/d;</span>
+<span class="lineNum">     324 </span><span class="lineCov">         25 :       double mu_y = distance[1]/d;</span>
+<span class="lineNum">     325 </span><span class="lineCov">         25 :       double mu_z = distance[2]/d;</span>
+<span class="lineNum">     326 </span><span class="lineCov">         25 :       gsl_vector_set(rdc_vec,index,coupl[index]/dmax[index]);</span>
+<span class="lineNum">     327 </span><span class="lineCov">         25 :       gsl_matrix_set(coef_mat,index,0,gsl_matrix_get(coef_mat,index,0)+(mu_x*mu_x-mu_z*mu_z));</span>
+<span class="lineNum">     328 </span><span class="lineCov">         25 :       gsl_matrix_set(coef_mat,index,1,gsl_matrix_get(coef_mat,index,1)+(mu_y*mu_y-mu_z*mu_z));</span>
+<span class="lineNum">     329 </span><span class="lineCov">         25 :       gsl_matrix_set(coef_mat,index,2,gsl_matrix_get(coef_mat,index,2)+(2.0*mu_x*mu_y));</span>
+<span class="lineNum">     330 </span><span class="lineCov">         25 :       gsl_matrix_set(coef_mat,index,3,gsl_matrix_get(coef_mat,index,3)+(2.0*mu_x*mu_z));</span>
+<span class="lineNum">     331 </span><span class="lineCov">         25 :       gsl_matrix_set(coef_mat,index,4,gsl_matrix_get(coef_mat,index,4)+(2.0*mu_y*mu_z));</span>
+<span class="lineNum">     332 </span><span class="lineCov">         25 :       index++;</span>
+<span class="lineNum">     333 </span>            :     }
+<span class="lineNum">     334 </span><span class="lineCov">          5 :     gsl_matrix_memcpy(A,coef_mat);</span>
+<span class="lineNum">     335 </span><span class="lineCov">          5 :     gsl_linalg_SV_decomp(A, V, Stmp, work);</span>
+<span class="lineNum">     336 </span><span class="lineCov">          5 :     gsl_linalg_SV_solve(A, V, Stmp, rdc_vec, S);</span>
+<span class="lineNum">     337 </span>            :     /* tensor 
+<span class="lineNum">     338 </span>            :     double Sxx = gsl_vector_get(S,0);
+<span class="lineNum">     339 </span>            :     double Syy = gsl_vector_get(S,1);
+<span class="lineNum">     340 </span>            :     double Szz = -Sxx-Syy;
+<span class="lineNum">     341 </span>            :     double Sxy = gsl_vector_get(S,2);
+<span class="lineNum">     342 </span>            :     double Sxz = gsl_vector_get(S,3);
+<span class="lineNum">     343 </span>            :     double Syz = gsl_vector_get(S,4);
+<span class="lineNum">     344 </span>            :     */
+<span class="lineNum">     345 </span><span class="lineCov">          5 :     gsl_blas_dgemv(CblasNoTrans, 1.0, coef_mat, S, 0., bc);</span>
+<span class="lineNum">     346 </span><span class="lineCov">         30 :     for(index=0; index&lt;coupl.size(); index++) {</span>
+<span class="lineNum">     347 </span><span class="lineCov">         25 :       double rdc = gsl_vector_get(bc,index)*dmax[index];</span>
+<span class="lineNum">     348 </span><span class="lineCov">         25 :       Value* val=getPntrToComponent(index);</span>
+<span class="lineNum">     349 </span><span class="lineCov">         25 :       val-&gt;set(rdc);</span>
+<span class="lineNum">     350 </span>            :     }
+<span class="lineNum">     351 </span><span class="lineCov">          5 :     gsl_matrix_free(coef_mat);</span>
+<span class="lineNum">     352 </span><span class="lineCov">          5 :     gsl_matrix_free(A);</span>
+<span class="lineNum">     353 </span><span class="lineCov">          5 :     gsl_vector_free(rdc_vec);</span>
+<span class="lineNum">     354 </span><span class="lineCov">          5 :     gsl_vector_free(bc);</span>
+<span class="lineNum">     355 </span><span class="lineCov">          5 :     gsl_vector_free(Stmp);</span>
+<span class="lineNum">     356 </span><span class="lineCov">          5 :     gsl_vector_free(S);</span>
+<span class="lineNum">     357 </span><span class="lineCov">          5 :     gsl_vector_free(work);</span>
+<span class="lineNum">     358 </span>            : #endif
+<span class="lineNum">     359 </span>            : 
+<span class="lineNum">     360 </span>            :   }
+<span class="lineNum">     361 </span>            : 
+<span class="lineNum">     362 </span><span class="lineCov">        300 : }</span>
+<a name="363"><span class="lineNum">     363 </span>            : </a>
+<span class="lineNum">     364 </span>            : }
+<span class="lineNum">     365 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

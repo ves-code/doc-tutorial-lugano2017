@@ -1,0 +1,475 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - tools/OptimalAlignment.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">tools</a> - OptimalAlignment.cpp<span style="font-size: 80%;"> (source / <a href="OptimalAlignment.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">177</td>
+            <td class="headerCovTableEntryLo">0.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryLo">18.2 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2011-2016 The plumed team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE file at the root of the distribution for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.plumed.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of plumed, version 2.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    plumed is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    plumed is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with plumed.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : #include &quot;OptimalAlignment.h&quot;
+<span class="lineNum">      23 </span>            : #include &quot;Kearsley.h&quot;
+<span class="lineNum">      24 </span>            : #include &quot;Log.h&quot;
+<span class="lineNum">      25 </span>            : #include &lt;cmath&gt;
+<span class="lineNum">      26 </span>            : #include &lt;iostream&gt;
+<span class="lineNum">      27 </span>            : #include &lt;cstdlib&gt;
+<span class="lineNum">      28 </span>            : #include &quot;Random.h&quot;
+<span class="lineNum">      29 </span>            : 
+<span class="lineNum">      30 </span>            : using namespace std;
+<a name="31"><span class="lineNum">      31 </span>            : namespace PLMD{</a>
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span><span class="lineNoCov">          0 : OptimalAlignment::OptimalAlignment( const  std::vector&lt;double&gt;  &amp; align, const  std::vector&lt;double&gt;  &amp; displace, const std::vector&lt;Vector&gt; &amp; p0, const std::vector&lt;Vector&gt; &amp; p1 , Log* &amp;log )</span>
+<span class="lineNum">      34 </span><span class="lineNoCov">          0 : :log(log){</span>
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            :         // kearsley init to null
+<span class="lineNum">      37 </span><span class="lineNoCov">          0 :         mykearsley=NULL;</span>
+<span class="lineNum">      38 </span><span class="lineNoCov">          0 :         if (mykearsley==NULL) {</span>
+<span class="lineNum">      39 </span><span class="lineNoCov">          0 :                 mykearsley=new Kearsley(p0,p1,align,log);</span>
+<span class="lineNum">      40 </span>            :         }
+<span class="lineNum">      41 </span>            :         // copy the structure into place
+<span class="lineNum">      42 </span><span class="lineNoCov">          0 :         assignP0(p0);</span>
+<span class="lineNum">      43 </span><span class="lineNoCov">          0 :         assignP1(p1);</span>
+<span class="lineNum">      44 </span><span class="lineNoCov">          0 :         assignAlign(align);</span>
+<span class="lineNum">      45 </span><span class="lineNoCov">          0 :         assignDisplace(displace);</span>
+<span class="lineNum">      46 </span>            : 
+<span class="lineNum">      47 </span>            :         // basic check
+<span class="lineNum">      48 </span><span class="lineNoCov">          0 :         if(p0.size() != p1.size()){</span>
+<span class="lineNum">      49 </span><span class="lineNoCov">          0 :                 (this-&gt;log)-&gt;printf(&quot;THE SIZE OF THE TWO FRAMES TO BE ALIGNED ARE DIFFERENT\n&quot;);</span>
+<span class="lineNum">      50 </span>            :     }
+<span class="lineNum">      51 </span>            :         // fast behaviour: if all the alignment and displacement are 1.0 then go for fast 
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :         fast=true;</span>
+<span class="lineNum">      53 </span><span class="lineNoCov">          0 :         for (unsigned i=0;i&lt;align.size();i++ ){</span>
+<span class="lineNum">      54 </span><span class="lineNoCov">          0 :                 if(align[i]!=displace[i] || align[i]!=1.0)fast=false;</span>
+<span class="lineNum">      55 </span>            :         }
+<span class="lineNum">      56 </span>            : 
+<a name="57"><span class="lineNum">      57 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span><span class="lineNoCov">          0 : OptimalAlignment::~OptimalAlignment(){</span>
+<span class="lineNum">      60 </span><span class="lineNoCov">          0 :         if (mykearsley!=NULL)delete mykearsley;</span>
+<a name="61"><span class="lineNum">      61 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span><span class="lineNoCov">          0 : void OptimalAlignment::assignP0(  const std::vector&lt;Vector&gt; &amp; p0 ){</span>
+<span class="lineNum">      64 </span><span class="lineNoCov">          0 :         this-&gt;p0=p0;</span>
+<span class="lineNum">      65 </span><span class="lineNoCov">          0 :         if(mykearsley!=NULL){mykearsley-&gt;assignP0(p0);}else{cerr&lt;&lt;&quot;kearsley is not initialized&quot;&lt;&lt;endl; exit(0);}</span>
+<a name="66"><span class="lineNum">      66 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span><span class="lineNoCov">          0 : void OptimalAlignment::assignP1(  const std::vector&lt;Vector&gt; &amp; p1 ){</span>
+<span class="lineNum">      69 </span><span class="lineNoCov">          0 :         this-&gt;p1=p1;</span>
+<span class="lineNum">      70 </span><span class="lineNoCov">          0 :         if(mykearsley!=NULL){mykearsley-&gt;assignP1(p1);}else{cerr&lt;&lt;&quot;kearsley is not initialized&quot;&lt;&lt;endl; exit(0);}</span>
+<a name="71"><span class="lineNum">      71 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span><span class="lineNoCov">          0 : void OptimalAlignment::assignAlign(  const std::vector&lt;double&gt; &amp; align ){</span>
+<span class="lineNum">      74 </span><span class="lineNoCov">          0 :         this-&gt;align=align;</span>
+<span class="lineNum">      75 </span><span class="lineNoCov">          0 :         if(mykearsley!=NULL){mykearsley-&gt;assignAlign(align);}else{cerr&lt;&lt;&quot;kearsley is not initialized&quot;&lt;&lt;endl; exit(0);}</span>
+<a name="76"><span class="lineNum">      76 </span><span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span><span class="lineNoCov">          0 : void OptimalAlignment::assignDisplace(  const std::vector&lt;double&gt; &amp; displace ){</span>
+<span class="lineNum">      79 </span><span class="lineNoCov">          0 :         this-&gt;displace=displace;</span>
+<span class="lineNum">      80 </span><span class="lineNoCov">          0 : }</span>
+<a name="81"><span class="lineNum">      81 </span>            : </a>
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span><span class="lineNoCov">          0 : double OptimalAlignment::calculate(bool squared, std::vector&lt;Vector&gt; &amp; derivatives){</span>
+<span class="lineNum">      84 </span>            : 
+<span class="lineNum">      85 </span><span class="lineNoCov">          0 :         bool rmsd=!squared ;  </span>
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span>            :         double err;
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span>            :         // at this point everything should be already in place for calculating the alignment (p1,p2,align)
+<span class="lineNum">      90 </span>            :         // here everything is done with kearsley algorithm. Extension to other optimal alignment algos is
+<span class="lineNum">      91 </span>            :         // possible here below with a switch
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span><span class="lineNoCov">          0 :         err=mykearsley-&gt;calculate(rmsd);  // this calculates the MSD: transform into RMSD</span>
+<span class="lineNum">      94 </span>            : 
+<span class="lineNum">      95 </span>            :         // check findiff alignment
+<span class="lineNum">      96 </span>            :          //mykearsley-&gt;finiteDifferenceInterface(rmsd);
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span><span class="lineNoCov">          0 :         if(fast){</span>
+<span class="lineNum">      99 </span>            :                 //log-&gt;printf(&quot;Doing fast: ERR %12.6f \n&quot;,err);
+<span class="lineNum">     100 </span><span class="lineNoCov">          0 :                 derrdp0=mykearsley-&gt;derrdp0;</span>
+<span class="lineNum">     101 </span><span class="lineNoCov">          0 :                 derrdp1=mykearsley-&gt;derrdp1;</span>
+<span class="lineNum">     102 </span><span class="lineNoCov">          0 :                 derivatives=derrdp0;</span>
+<span class="lineNum">     103 </span>            :         }else{
+<span class="lineNum">     104 </span>            :                 /// TODO this interface really sucks since is strongly asymmetric should be re-engineered.
+<span class="lineNum">     105 </span><span class="lineNoCov">          0 :                 err=weightedAlignment(rmsd);</span>
+<span class="lineNum">     106 </span>            :                 //log-&gt;printf(&quot;Doing slow: ERR %12.6f \n&quot;,err);
+<span class="lineNum">     107 </span><span class="lineNoCov">          0 :                 derivatives=derrdp0;</span>
+<span class="lineNum">     108 </span>            :         }
+<span class="lineNum">     109 </span>            :         // destroy the kearsley object?
+<span class="lineNum">     110 </span>            : 
+<span class="lineNum">     111 </span><span class="lineNoCov">          0 :         return err;</span>
+<span class="lineNum">     112 </span>            : }
+<span class="lineNum">     113 </span>            : 
+<span class="lineNum">     114 </span>            : #ifdef __INTEL_COMPILER
+<span class="lineNum">     115 </span>            : #pragma intel optimization_level 2
+<a name="116"><span class="lineNum">     116 </span>            : #endif</a>
+<span class="lineNum">     117 </span>            : /// this does the weighed alignment if the vector of alignment is different from displacement
+<span class="lineNum">     118 </span><span class="lineNoCov">          0 : double OptimalAlignment::weightedAlignment( bool rmsd){</span>
+<span class="lineNum">     119 </span>            :         double tmp0,tmp1,walign,wdisplace,const1,ret;
+<span class="lineNum">     120 </span>            :         unsigned  i,k,l,m,n,o,oo,mm;
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span><span class="lineNoCov">          0 :         unsigned natoms=p0.size();</span>
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span><span class="lineNoCov">          0 :         Kearsley *myk=mykearsley;  /// just a shortcut</span>
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span>            :         /// TODO : these two blocks can be calculated once forever after the initialization (exception for certain methods?)
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span>            :         /// clear derivatives
+<span class="lineNum">     129 </span><span class="lineNoCov">          0 :         if (derrdp0.size()!=natoms)derrdp0.resize(natoms);</span>
+<span class="lineNum">     130 </span><span class="lineNoCov">          0 :         if (derrdp1.size()!=natoms)derrdp1.resize(natoms);</span>
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            :         // clear the container
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :         for(i=0;i&lt;natoms;i++){</span>
+<span class="lineNum">     134 </span><span class="lineNoCov">          0 :                 derrdp0[i][0]=derrdp0[i][1]=derrdp0[i][2]=0.;</span>
+<span class="lineNum">     135 </span><span class="lineNoCov">          0 :                 derrdp1[i][0]=derrdp1[i][1]=derrdp1[i][2]=0.;</span>
+<span class="lineNum">     136 </span>            :         }
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span><span class="lineNoCov">          0 :         walign=0.;</span>
+<span class="lineNum">     139 </span><span class="lineNoCov">          0 :         vector&lt;int&gt; alignmap;</span>
+<span class="lineNum">     140 </span><span class="lineNoCov">          0 :         for(i=0;i&lt;natoms;i++){</span>
+<span class="lineNum">     141 </span><span class="lineNoCov">          0 :                 if (align[i]&gt;0.){</span>
+<span class="lineNum">     142 </span><span class="lineNoCov">          0 :                         alignmap.push_back(i);</span>
+<span class="lineNum">     143 </span><span class="lineNoCov">          0 :                         walign+=align[i];</span>
+<span class="lineNum">     144 </span>            :                 }
+<span class="lineNum">     145 </span><span class="lineNoCov">          0 :                 if (align[i]&lt;0.){cerr&lt;&lt;&quot;FOUND ALIGNMENT WEIGHT NEGATIVE!&quot;&lt;&lt;endl;exit(0);};</span>
+<span class="lineNum">     146 </span>            :         }
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span><span class="lineNoCov">          0 :         wdisplace=0.;</span>
+<span class="lineNum">     149 </span><span class="lineNoCov">          0 :         vector&lt;int&gt; displacemap;</span>
+<span class="lineNum">     150 </span><span class="lineNoCov">          0 :         for(i=0;i&lt;natoms;i++){</span>
+<span class="lineNum">     151 </span><span class="lineNoCov">          0 :                 if (displace[i]&gt;0.){</span>
+<span class="lineNum">     152 </span><span class="lineNoCov">          0 :                         displacemap.push_back(i);</span>
+<span class="lineNum">     153 </span><span class="lineNoCov">          0 :                         wdisplace+=displace[i];</span>
+<span class="lineNum">     154 </span>            :                 }
+<span class="lineNum">     155 </span><span class="lineNoCov">          0 :                 if (displace[i]&lt;0.){cerr&lt;&lt;&quot;FOUND ALIGNMENT WEIGHT NEGATIVE!&quot;&lt;&lt;endl;exit(0);};</span>
+<span class="lineNum">     156 </span>            :         }
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span>            : 
+<span class="lineNum">     159 </span><span class="lineNoCov">          0 :         tmp0=0.;</span>
+<span class="lineNum">     160 </span>            : 
+<span class="lineNum">     161 </span><span class="lineNoCov">          0 :         vector&lt;Vector&gt; array_n_3;</span>
+<span class="lineNum">     162 </span><span class="lineNoCov">          0 :         array_n_3.resize(natoms);</span>
+<span class="lineNum">     163 </span><span class="lineNoCov">          0 :         for(i=0;i&lt;array_n_3.size();i++)array_n_3[i][0]=array_n_3[i][1]=array_n_3[i][2]=0.;</span>
+<span class="lineNum">     164 </span>            : 
+<span class="lineNum">     165 </span>            :         //    err= (1/totdisplace) sum_k_l   displace_k*((p0reset_k_l- sum_k_m rot_l_m*p1reset_k_m )**2)
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span>            :         //for(kk=0;kk&lt;displacemap.size();kk++){
+<span class="lineNum">     168 </span>            :         //      k=displacemap[kk];
+<span class="lineNum">     169 </span><span class="lineNoCov">          0 :         for(k=0;k&lt;natoms;k++){</span>
+<span class="lineNum">     170 </span>            : 
+<span class="lineNum">     171 </span><span class="lineNoCov">          0 :                 for(l=0;l&lt;3;l++){</span>
+<span class="lineNum">     172 </span>            : 
+<span class="lineNum">     173 </span><span class="lineNoCov">          0 :                         tmp1=0.;</span>
+<span class="lineNum">     174 </span>            :                         // contribution from rotated reference frame //
+<span class="lineNum">     175 </span><span class="lineNoCov">          0 :                         for(m=0;m&lt;3;m++){</span>
+<span class="lineNum">     176 </span><span class="lineNoCov">          0 :                                 tmp1-=myk-&gt;rotmat0on1[l][m]*myk-&gt;p1reset[k][m];</span>
+<span class="lineNum">     177 </span>            :                         }
+<span class="lineNum">     178 </span>            : 
+<span class="lineNum">     179 </span>            :                         // contribution from running centered frame //
+<span class="lineNum">     180 </span><span class="lineNoCov">          0 :                         tmp1+= myk-&gt;p0reset[k][l];</span>
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span><span class="lineNoCov">          0 :                         array_n_3[k][l]=tmp1; // store coefficents for derivative usage//</span>
+<span class="lineNum">     183 </span><span class="lineNoCov">          0 :                         tmp0+=tmp1*tmp1*displace[k]; //squared distance added//</span>
+<span class="lineNum">     184 </span>            :                 }
+<span class="lineNum">     185 </span>            : 
+<span class="lineNum">     186 </span>            :         }
+<span class="lineNum">     187 </span>            : 
+<span class="lineNum">     188 </span><span class="lineNoCov">          0 :         tmp0=tmp0/wdisplace;</span>
+<span class="lineNum">     189 </span>            : 
+<span class="lineNum">     190 </span>            :   // log-&gt;printf(&quot; ERRR NEW %f \n&quot;,tmp0);
+<span class="lineNum">     191 </span>            : 
+<span class="lineNum">     192 </span><span class="lineNoCov">          0 :         ret=tmp0;</span>
+<span class="lineNum">     193 </span>            : 
+<span class="lineNum">     194 </span>            :         /* DERIVATIVE CALCULATION:respect to running frame */
+<span class="lineNum">     195 </span><span class="lineNoCov">          0 :         for(k=0;k&lt;natoms;k++){</span>
+<span class="lineNum">     196 </span><span class="lineNoCov">          0 :                 for(l=0;l&lt;3;l++){</span>
+<span class="lineNum">     197 </span>            : 
+<span class="lineNum">     198 </span><span class="lineNoCov">          0 :                         tmp1 =2.*array_n_3[k][l]*displace[k]/wdisplace ; //ok</span>
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span><span class="lineNoCov">          0 :                         const1=2.*align[k]/(walign*wdisplace);</span>
+<span class="lineNum">     201 </span>            : 
+<span class="lineNum">     202 </span><span class="lineNoCov">          0 :                         if(const1&gt;0.){</span>
+<span class="lineNum">     203 </span><span class="lineNoCov">          0 :                                 for(oo=0;oo&lt;displacemap.size();oo++){</span>
+<span class="lineNum">     204 </span><span class="lineNoCov">          0 :                                         o=displacemap[oo];</span>
+<span class="lineNum">     205 </span><span class="lineNoCov">          0 :                                         tmp1 -=const1*array_n_3[o][l]*displace[o];   //ok</span>
+<span class="lineNum">     206 </span>            :                                 }
+<span class="lineNum">     207 </span>            :                         }
+<span class="lineNum">     208 </span>            : 
+<span class="lineNum">     209 </span><span class="lineNoCov">          0 :                         for(mm=0;mm&lt;displacemap.size();mm++){</span>
+<span class="lineNum">     210 </span><span class="lineNoCov">          0 :                                 m=displacemap[mm];</span>
+<span class="lineNum">     211 </span><span class="lineNoCov">          0 :                                 const1=2.* displace[m]/wdisplace ;</span>
+<span class="lineNum">     212 </span><span class="lineNoCov">          0 :                                 for(n=0;n&lt;3;n++){</span>
+<span class="lineNum">     213 </span><span class="lineNoCov">          0 :                                         tmp0=0.;</span>
+<span class="lineNum">     214 </span><span class="lineNoCov">          0 :                                         for(o=0;o&lt;3;o++){</span>
+<span class="lineNum">     215 </span><span class="lineNoCov">          0 :                                                 int ind=n*3*3*natoms+o*3*natoms+l*natoms+k;  //ok</span>
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 :                                                 tmp0+=myk-&gt;dmatdp0[ind]*myk-&gt;p1reset[m][o];</span>
+<span class="lineNum">     217 </span>            :                                         }
+<span class="lineNum">     218 </span><span class="lineNoCov">          0 :                                         tmp0*=-const1*array_n_3[m][n];</span>
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span><span class="lineNoCov">          0 :                                         tmp1+=tmp0;</span>
+<span class="lineNum">     221 </span>            :                                 }
+<span class="lineNum">     222 </span>            :                         }
+<span class="lineNum">     223 </span>            : 
+<span class="lineNum">     224 </span><span class="lineNoCov">          0 :                         derrdp0[k][l]=tmp1;</span>
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span>            :                 }
+<span class="lineNum">     227 </span>            :         }
+<span class="lineNum">     228 </span>            :         //exit(0);
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span>            :         //return ret;
+<span class="lineNum">     231 </span><span class="lineNoCov">          0 :         bool do_frameref_der=true;</span>
+<span class="lineNum">     232 </span>            : 
+<span class="lineNum">     233 </span>            :         // derivatives of
+<span class="lineNum">     234 </span>            :         //    err= (1/totdisplace) sum_k_l   displace_k*((p0reset_k_l- sum_m rot_l_m*p1reset_k_m )**2)
+<span class="lineNum">     235 </span>            :         // respect p1:
+<span class="lineNum">     236 </span>            :         // derr_dp1=(1/totdisplace) sum_k_l 2*displace_k*(p0reset_k_l- sum_m rot_l_m*p1reset_k_m )
+<span class="lineNum">     237 </span>            :         //                                                                       *d/dp1 ( p0reset_k_l- sum_m rot_l_m*p1reset_k_m)
+<span class="lineNum">     238 </span>            :         // =
+<span class="lineNum">     239 </span>            :         // (1/totdisplace) sum_k_l 2*displace_k*(p0reset_k_l- sum_m rot_l_m*p1reset_k_m )*
+<span class="lineNum">     240 </span>            :         //                                                      *(d/dp1 p0reset_k_l
+<span class="lineNum">     241 </span>            :         //                                                              - sum_m (d/dp1  rot_l_m)*p1reset_k_m
+<span class="lineNum">     242 </span>            :         //                                                              - sum_m rot_l_m*(d/dp1 p1reset_k_m ) )
+<span class="lineNum">     243 </span>            :         // =
+<span class="lineNum">     244 </span>            :         //                              sum_k_l 2*displace_k/totdisplace* array_n_3_k_l
+<span class="lineNum">     245 </span>            :         //                                                      *(- sum_m (d/dp1  rot_l_m)*p1reset_k_m
+<span class="lineNum">     246 </span>            :         //                                                              - sum_m rot_l_m*(d/dp1 p1reset_k_m ) )
+<span class="lineNum">     247 </span>            : 
+<span class="lineNum">     248 </span><span class="lineNoCov">          0 :         if(do_frameref_der){</span>
+<span class="lineNum">     249 </span><span class="lineNoCov">          0 :                 for(k=0;k&lt;natoms;k++){</span>
+<span class="lineNum">     250 </span>            : //                      for(kk=0;kk&lt;displacemap.size();kk++){
+<span class="lineNum">     251 </span>            : //                              k=displacemap[kk];
+<span class="lineNum">     252 </span>            : 
+<span class="lineNum">     253 </span><span class="lineNoCov">          0 :                         for(l=0;l&lt;3;l++){</span>
+<span class="lineNum">     254 </span>            : 
+<span class="lineNum">     255 </span><span class="lineNoCov">          0 :                                 tmp1=0.;</span>
+<span class="lineNum">     256 </span><span class="lineNoCov">          0 :                                 for(mm=0;mm&lt;displacemap.size();mm++){</span>
+<span class="lineNum">     257 </span><span class="lineNoCov">          0 :                                         m=displacemap[mm];</span>
+<span class="lineNum">     258 </span><span class="lineNoCov">          0 :                                         const1=2.* displace[m]/wdisplace ;</span>
+<span class="lineNum">     259 </span><span class="lineNoCov">          0 :                                         for(n=0;n&lt;3;n++){</span>
+<span class="lineNum">     260 </span><span class="lineNoCov">          0 :                                                 tmp0=0.;</span>
+<span class="lineNum">     261 </span><span class="lineNoCov">          0 :                                                 for(o=0;o&lt;3;o++){</span>
+<span class="lineNum">     262 </span><span class="lineNoCov">          0 :                                                         int ind=n*3*3*natoms+o*3*natoms+l*natoms+k;</span>
+<span class="lineNum">     263 </span><span class="lineNoCov">          0 :                                                         tmp0+=myk-&gt;dmatdp1[ind]*myk-&gt;p1reset[m][o];</span>
+<span class="lineNum">     264 </span>            :                                                 }
+<span class="lineNum">     265 </span><span class="lineNoCov">          0 :                                                 tmp0*=-const1*array_n_3[m][n];</span>
+<span class="lineNum">     266 </span><span class="lineNoCov">          0 :                                                 tmp1+= tmp0;</span>
+<span class="lineNum">     267 </span>            :                                         }
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span>            :                                 }
+<span class="lineNum">     270 </span>            : 
+<span class="lineNum">     271 </span><span class="lineNoCov">          0 :                                 tmp0=0.;</span>
+<span class="lineNum">     272 </span><span class="lineNoCov">          0 :                                 for(o=0;o&lt;3;o++){</span>
+<span class="lineNum">     273 </span><span class="lineNoCov">          0 :                                                         tmp0+=array_n_3[k][o]*myk-&gt;rotmat0on1[o][l];</span>
+<span class="lineNum">     274 </span>            :                                 }
+<span class="lineNum">     275 </span><span class="lineNoCov">          0 :                                 tmp1+=-tmp0*2.*displace[k]/wdisplace;</span>
+<span class="lineNum">     276 </span>            : 
+<span class="lineNum">     277 </span><span class="lineNoCov">          0 :                                 tmp0=0.;</span>
+<span class="lineNum">     278 </span>            : 
+<span class="lineNum">     279 </span><span class="lineNoCov">          0 :                                 for(mm=0;mm&lt;displacemap.size();mm++){</span>
+<span class="lineNum">     280 </span><span class="lineNoCov">          0 :                                         m=displacemap[mm];</span>
+<span class="lineNum">     281 </span><span class="lineNoCov">          0 :                                         for(o=0;o&lt;3;o++){</span>
+<span class="lineNum">     282 </span><span class="lineNoCov">          0 :                                                 tmp0+=array_n_3[m][o]*myk-&gt;rotmat0on1[o][l]*displace[m];</span>
+<span class="lineNum">     283 </span>            :                                         }
+<span class="lineNum">     284 </span>            :                                 }
+<span class="lineNum">     285 </span><span class="lineNoCov">          0 :                                 tmp1 += tmp0*2.*align[k]/(walign*wdisplace);</span>
+<span class="lineNum">     286 </span>            : 
+<span class="lineNum">     287 </span><span class="lineNoCov">          0 :                                 derrdp1[k][l]=tmp1;</span>
+<span class="lineNum">     288 </span>            : 
+<span class="lineNum">     289 </span>            :                         }
+<span class="lineNum">     290 </span>            :                 }
+<span class="lineNum">     291 </span>            :         }
+<span class="lineNum">     292 </span>            : 
+<span class="lineNum">     293 </span>            :         /// probably not really the way it should be
+<span class="lineNum">     294 </span><span class="lineNoCov">          0 :         if (rmsd){</span>
+<span class="lineNum">     295 </span><span class="lineNoCov">          0 :                 ret=sqrt(ret);</span>
+<span class="lineNum">     296 </span><span class="lineNoCov">          0 :                         double tmp=0.5/ret;</span>
+<span class="lineNum">     297 </span><span class="lineNoCov">          0 :                         for(unsigned i=0;i&lt;natoms;i++){</span>
+<span class="lineNum">     298 </span><span class="lineNoCov">          0 :                                         derrdp0[i][0]=derrdp0[i][0]*tmp;</span>
+<span class="lineNum">     299 </span><span class="lineNoCov">          0 :                                         derrdp0[i][1]=derrdp0[i][1]*tmp;</span>
+<span class="lineNum">     300 </span><span class="lineNoCov">          0 :                                         derrdp0[i][2]=derrdp0[i][2]*tmp;</span>
+<span class="lineNum">     301 </span><span class="lineNoCov">          0 :                                         derrdp1[i][0]=derrdp1[i][0]*tmp;</span>
+<span class="lineNum">     302 </span><span class="lineNoCov">          0 :                                         derrdp1[i][1]=derrdp1[i][1]*tmp;</span>
+<span class="lineNum">     303 </span><span class="lineNoCov">          0 :                                         derrdp1[i][2]=derrdp1[i][2]*tmp;</span>
+<span class="lineNum">     304 </span>            : 
+<span class="lineNum">     305 </span>            :                         }
+<span class="lineNum">     306 </span>            :         }
+<span class="lineNum">     307 </span>            : 
+<span class="lineNum">     308 </span><span class="lineNoCov">          0 :         return ret;</span>
+<a name="309"><span class="lineNum">     309 </span>            : }</a>
+<span class="lineNum">     310 </span>            : 
+<span class="lineNum">     311 </span><span class="lineNoCov">          0 : double OptimalAlignment::weightedFindiffTest( bool rmsd){</span>
+<span class="lineNum">     312 </span>            : 
+<span class="lineNum">     313 </span><span class="lineNoCov">          0 :         Random rnd;</span>
+<span class="lineNum">     314 </span>            : 
+<span class="lineNum">     315 </span><span class="lineNoCov">          0 :         log-&gt;printf(&quot;Entering rmsd finite difference test system\n &quot;);</span>
+<span class="lineNum">     316 </span><span class="lineNoCov">          0 :         log-&gt;printf(&quot;RMSD OR MSD: %s\n&quot;,(rmsd)?&quot;rmsd&quot;:&quot;msd&quot;);</span>
+<span class="lineNum">     317 </span><span class="lineNoCov">          0 :         log-&gt;printf(&quot;-------------------------------------------\n&quot;);</span>
+<span class="lineNum">     318 </span><span class="lineNoCov">          0 :         log-&gt;printf(&quot;TEST1: derivative of the value (derr_dr0/derr_dr1)\n&quot;);</span>
+<span class="lineNum">     319 </span>            :         //// test 1
+<span class="lineNum">     320 </span><span class="lineNoCov">          0 :         double step=1.e-8,olderr,delta,err;</span>
+<span class="lineNum">     321 </span><span class="lineNoCov">          0 :         vector&lt;Vector&gt; fakederivatives;</span>
+<span class="lineNum">     322 </span><span class="lineNoCov">          0 :         fakederivatives.resize(p0.size());</span>
+<span class="lineNum">     323 </span><span class="lineNoCov">          0 :         fast=false;</span>
+<span class="lineNum">     324 </span>            :         // randomizing alignments and  displacements
+<span class="lineNum">     325 </span>            : /*      for (i=0;i&lt;p0.size();i++){
+<span class="lineNum">     326 </span>            :                 // draw a random number
+<span class="lineNum">     327 </span>            :             delta=drand48();
+<span class="lineNum">     328 </span>            :             delta1=drand48();
+<span class="lineNum">     329 </span>            :             if(delta&gt;delta1){
+<span class="lineNum">     330 </span>            :                 align[i]=delta;
+<span class="lineNum">     331 </span>            :             }else{align[i]=0.;};
+<span class="lineNum">     332 </span>            :             delta=drand48();
+<span class="lineNum">     333 </span>            :             delta1=drand48();
+<span class="lineNum">     334 </span>            :             if(delta&gt;delta1){
+<span class="lineNum">     335 </span>            :                 displace[i]=delta;
+<span class="lineNum">     336 </span>            :             }else{displace[i]=0.;}
+<span class="lineNum">     337 </span>            :         }*/
+<span class="lineNum">     338 </span>            :         //// get initial value of the error and derivative of it
+<span class="lineNum">     339 </span><span class="lineNoCov">          0 :         assignAlign(align);</span>
+<span class="lineNum">     340 </span><span class="lineNoCov">          0 :         assignDisplace(displace);</span>
+<span class="lineNum">     341 </span><span class="lineNoCov">          0 :         olderr=calculate(rmsd, fakederivatives);</span>
+<span class="lineNum">     342 </span>            : 
+<span class="lineNum">     343 </span><span class="lineNoCov">          0 :         log-&gt;printf(&quot;INITIAL ERROR VALUE: %e\n&quot;,olderr);</span>
+<span class="lineNum">     344 </span>            : 
+<span class="lineNum">     345 </span>            :         // randomizing alignments and  displacements
+<span class="lineNum">     346 </span><span class="lineNoCov">          0 :         log-&gt;printf(&quot;TESTING: derrdp0 \n&quot;);</span>
+<span class="lineNum">     347 </span>            : 
+<span class="lineNum">     348 </span><span class="lineNoCov">          0 :         for(unsigned j=0;j&lt;3;j++){</span>
+<span class="lineNum">     349 </span><span class="lineNoCov">          0 :            for(unsigned i=0;i&lt;derrdp0.size();i++){</span>
+<span class="lineNum">     350 </span>            :                // random displacement
+<span class="lineNum">     351 </span><span class="lineNoCov">          0 :                delta=(rnd.RandU01()-0.5)*2*step;</span>
+<span class="lineNum">     352 </span><span class="lineNoCov">          0 :                p0[i][j]+=delta;</span>
+<span class="lineNum">     353 </span><span class="lineNoCov">          0 :                assignP0( p0 );</span>
+<span class="lineNum">     354 </span><span class="lineNoCov">          0 :                err=calculate(rmsd, fakederivatives);</span>
+<span class="lineNum">     355 </span><span class="lineNoCov">          0 :                p0[i][j]-=delta;</span>
+<span class="lineNum">     356 </span><span class="lineNoCov">          0 :                assignP0( p0 );</span>
+<span class="lineNum">     357 </span><span class="lineNoCov">          0 :                switch(j){</span>
+<span class="lineNum">     358 </span>            :                  case 0:
+<span class="lineNum">     359 </span><span class="lineNoCov">          0 :                      log-&gt;printf(&quot;TESTING: X  %4u ANAL %18.9f NUMER %18.9f DELTA %18.9f DISP %6.2f ALIGN %6.2f \n&quot;,i,derrdp0[i][j],(err-olderr)/delta,derrdp0[i][j]-(err-olderr)/delta,displace[i],align[i]);break;</span>
+<span class="lineNum">     360 </span>            :                  case 1:
+<span class="lineNum">     361 </span><span class="lineNoCov">          0 :                      log-&gt;printf(&quot;TESTING: Y  %4u ANAL %18.9f NUMER %18.9f DELTA %18.9f DISP %6.2f ALIGN %6.2f \n&quot;,i,derrdp0[i][j],(err-olderr)/delta,derrdp0[i][j]-(err-olderr)/delta,displace[i],align[i]);break;</span>
+<span class="lineNum">     362 </span>            :                  case 2:
+<span class="lineNum">     363 </span><span class="lineNoCov">          0 :                      log-&gt;printf(&quot;TESTING: Z  %4u ANAL %18.9f NUMER %18.9f DELTA %18.9f DISP %6.2f ALIGN %6.2f \n&quot;,i,derrdp0[i][j],(err-olderr)/delta,derrdp0[i][j]-(err-olderr)/delta,displace[i],align[i]);break;</span>
+<span class="lineNum">     364 </span>            : 
+<span class="lineNum">     365 </span>            :                }
+<span class="lineNum">     366 </span>            :            }
+<span class="lineNum">     367 </span>            :         }
+<span class="lineNum">     368 </span>            : 
+<span class="lineNum">     369 </span><span class="lineNoCov">          0 :         log-&gt;printf(&quot;TESTING: derrdp1 \n&quot;);</span>
+<span class="lineNum">     370 </span><span class="lineNoCov">          0 :         for(unsigned j=0;j&lt;3;j++){</span>
+<span class="lineNum">     371 </span><span class="lineNoCov">          0 :            for(unsigned i=0;i&lt;derrdp1.size();i++){</span>
+<span class="lineNum">     372 </span>            :                // random displacement
+<span class="lineNum">     373 </span><span class="lineNoCov">          0 :                delta=(rnd.RandU01()-0.5)*2*step;</span>
+<span class="lineNum">     374 </span><span class="lineNoCov">          0 :                p1[i][j]+=delta;</span>
+<span class="lineNum">     375 </span><span class="lineNoCov">          0 :                assignP1( p1 );</span>
+<span class="lineNum">     376 </span><span class="lineNoCov">          0 :                err=calculate(rmsd, fakederivatives);</span>
+<span class="lineNum">     377 </span><span class="lineNoCov">          0 :                p1[i][j]-=delta;</span>
+<span class="lineNum">     378 </span><span class="lineNoCov">          0 :                assignP1( p1 );</span>
+<span class="lineNum">     379 </span><span class="lineNoCov">          0 :                switch(j){</span>
+<span class="lineNum">     380 </span>            :                  case 0:
+<span class="lineNum">     381 </span><span class="lineNoCov">          0 :                      log-&gt;printf(&quot;TESTING: X  %4u ANAL %18.9f NUMER %18.9f DELTA %18.9f DISP %6.2f ALIGN %6.2f \n&quot;,i,derrdp1[i][j],(err-olderr)/delta,derrdp1[i][j]-(err-olderr)/delta,displace[i],align[i]);break;</span>
+<span class="lineNum">     382 </span>            :                  case 1:
+<span class="lineNum">     383 </span><span class="lineNoCov">          0 :                      log-&gt;printf(&quot;TESTING: Y  %4u ANAL %18.9f NUMER %18.9f DELTA %18.9f DISP %6.2f ALIGN %6.2f \n&quot;,i,derrdp1[i][j],(err-olderr)/delta,derrdp1[i][j]-(err-olderr)/delta,displace[i],align[i]);break;</span>
+<span class="lineNum">     384 </span>            :                  case 2:
+<span class="lineNum">     385 </span><span class="lineNoCov">          0 :                      log-&gt;printf(&quot;TESTING: Z  %4u ANAL %18.9f NUMER %18.9f DELTA %18.9f DISP %6.2f ALIGN %6.2f \n&quot;,i,derrdp1[i][j],(err-olderr)/delta,derrdp1[i][j]-(err-olderr)/delta,displace[i],align[i]);break;</span>
+<span class="lineNum">     386 </span>            : 
+<span class="lineNum">     387 </span>            :                }
+<span class="lineNum">     388 </span>            :            }
+<span class="lineNum">     389 </span>            :         }
+<span class="lineNum">     390 </span><span class="lineNoCov">          0 :         exit(0);</span>
+<span class="lineNum">     391 </span>            : 
+<span class="lineNum">     392 </span>            : // This is to avoid warnings:
+<span class="lineNum">     393 </span>            :   return 0.0;
+<span class="lineNum">     394 </span>            : 
+<span class="lineNum">     395 </span>            : }
+<span class="lineNum">     396 </span>            : 
+<a name="397"><span class="lineNum">     397 </span>            : </a>
+<span class="lineNum">     398 </span>            : 
+<span class="lineNum">     399 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

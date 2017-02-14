@@ -1,0 +1,9 @@
+Tue Feb 14 08:49:18 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/analysis/rt-average
+++ Test type: driver
+++ Arguments: --plumed plumed.dat --trajectory-stride 1 --timestep 0.005 --ixyz ala12_trajectory.xyz --dump-forces forces --dump-forces-fmt=%10.6f
+++ Processors: 0
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/analysis/rt-average/tmp
+Run driver
+Done. Here is the error file:

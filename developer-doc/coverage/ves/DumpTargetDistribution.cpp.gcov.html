@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - plumed test coverage - ves/DumpTargetDistribution.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">ves</a> - DumpTargetDistribution.cpp<span style="font-size: 80%;"> (source / <a href="DumpTargetDistribution.cpp.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">plumed test coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">99</td>
+            <td class="headerCovTableEntry">105</td>
+            <td class="headerCovTableEntryHi">94.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2017-02-14</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryMed">81.8 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</a>
+<span class="lineNum">       2 </span>            :    Copyright (c) 2016-2017 The ves-code team
+<span class="lineNum">       3 </span>            :    (see the PEOPLE-VES file at the root of this folder for a list of names)
+<span class="lineNum">       4 </span>            : 
+<span class="lineNum">       5 </span>            :    See http://www.ves-code.org for more information.
+<span class="lineNum">       6 </span>            : 
+<span class="lineNum">       7 </span>            :    This file is part of ves-code, version 1.
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            :    ves-code is free software: you can redistribute it and/or modify
+<span class="lineNum">      10 </span>            :    it under the terms of the GNU Lesser General Public License as published by
+<span class="lineNum">      11 </span>            :    the Free Software Foundation, either version 3 of the License, or
+<span class="lineNum">      12 </span>            :    (at your option) any later version.
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            :    ves-code is distributed in the hope that it will be useful,
+<span class="lineNum">      15 </span>            :    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<span class="lineNum">      16 </span>            :    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<span class="lineNum">      17 </span>            :    GNU Lesser General Public License for more details.
+<span class="lineNum">      18 </span>            : 
+<span class="lineNum">      19 </span>            :    You should have received a copy of the GNU Lesser General Public License
+<span class="lineNum">      20 </span>            :    along with ves-code.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<span class="lineNum">      21 </span>            : +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+<span class="lineNum">      22 </span>            : 
+<span class="lineNum">      23 </span>            : #include &quot;TargetDistribution.h&quot;
+<span class="lineNum">      24 </span>            : #include &quot;TargetDistributionRegister.h&quot;
+<span class="lineNum">      25 </span>            : #include &quot;GridIntegrationWeights.h&quot;
+<span class="lineNum">      26 </span>            : 
+<span class="lineNum">      27 </span>            : #include &quot;core/ActionRegister.h&quot;
+<span class="lineNum">      28 </span>            : #include &quot;core/ActionSet.h&quot;
+<span class="lineNum">      29 </span>            : #include &quot;core/PlumedMain.h&quot;
+<span class="lineNum">      30 </span>            : #include &quot;tools/File.h&quot;
+<span class="lineNum">      31 </span>            : #include &quot;tools/Grid.h&quot;
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            : namespace PLMD{
+<span class="lineNum">      35 </span>            : namespace ves{
+<span class="lineNum">      36 </span>            : 
+<span class="lineNum">      37 </span>            : //+PLUMEDOC VES_UTILS DUMP_TARGET_DISTRIBUTION
+<span class="lineNum">      38 </span>            : /*
+<span class="lineNum">      39 </span>            : Dump target distribution to file.
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            : \par Examples
+<span class="lineNum">      42 </span>            : */
+<span class="lineNum">      43 </span>            : //+ENDPLUMEDOC
+<a name="44"><span class="lineNum">      44 </span>            : </a>
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span><span class="lineCov">        218 : class DumpTargetDistribution :</span>
+<span class="lineNum">      47 </span>            :   public Action
+<span class="lineNum">      48 </span>            : {
+<a name="49"><span class="lineNum">      49 </span>            : public:</a>
+<a name="50"><span class="lineNum">      50 </span>            :   explicit DumpTargetDistribution(const ActionOptions&amp;);</a>
+<span class="lineNum">      51 </span><span class="lineNoCov">          0 :   void calculate(){}</span>
+<span class="lineNum">      52 </span><span class="lineNoCov">          0 :   void apply(){}</span>
+<span class="lineNum">      53 </span>            :   static void registerKeywords(Keywords&amp; keys);
+<span class="lineNum">      54 </span>            : };
+<a name="55"><span class="lineNum">      55 </span>            : </a>
+<span class="lineNum">      56 </span>            : 
+<a name="57"><span class="lineNum">      57 </span><span class="lineCov">       4123 : PLUMED_REGISTER_ACTION(DumpTargetDistribution,&quot;DUMP_TARGET_DISTRIBUTION&quot;)</span></a>
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span><span class="lineCov">        111 : void DumpTargetDistribution::registerKeywords(Keywords&amp; keys){</span>
+<span class="lineNum">      60 </span><span class="lineCov">        111 :   Action::registerKeywords(keys);</span>
+<span class="lineNum">      61 </span><span class="lineCov">        111 :   keys.add(&quot;compulsory&quot;,&quot;GRID_MIN&quot;,&quot;the lower bounds for the grid&quot;);</span>
+<span class="lineNum">      62 </span><span class="lineCov">        111 :   keys.add(&quot;compulsory&quot;,&quot;GRID_MAX&quot;,&quot;the upper bounds for the grid&quot;);</span>
+<span class="lineNum">      63 </span><span class="lineCov">        111 :   keys.add(&quot;compulsory&quot;,&quot;GRID_BINS&quot;,&quot;the number of bins used for the grid.&quot;);</span>
+<span class="lineNum">      64 </span><span class="lineCov">        111 :   keys.add(&quot;optional&quot;,&quot;GRID_PERIODICITY&quot;,&quot;specfiy if the individual arguments should be made periodic (YES) or not (NO). By default all arguments are taken as not periodic.&quot;);</span>
+<span class="lineNum">      65 </span><span class="lineCov">        111 :   keys.add(&quot;compulsory&quot;,&quot;TARGETDIST_FILE&quot;,&quot;filename of the file for writing the target distribution&quot;);</span>
+<span class="lineNum">      66 </span><span class="lineCov">        111 :   keys.add(&quot;optional&quot;,&quot;LOG_TARGETDIST_FILE&quot;,&quot;filename of the file for writing the log of the target distribution&quot;);</span>
+<span class="lineNum">      67 </span><span class="lineCov">        111 :   keys.add(&quot;compulsory&quot;,&quot;TARGET_DISTRIBUTION&quot;,&quot;the target distribution to be used.&quot;);</span>
+<span class="lineNum">      68 </span><span class="lineCov">        111 :   keys.add(&quot;optional&quot;,&quot;FMT_GRIDS&quot;,&quot;the numerical format of the target distribution grids written to file. By default it is %14.9f&quot;);</span>
+<span class="lineNum">      69 </span><span class="lineCov">        111 :   keys.addFlag(&quot;DO_1D_PROJECTIONS&quot;,false,&quot;Also output the one-dimensional marginal distributions for multi-dimensional target distribution.&quot;);</span>
+<a name="70"><span class="lineNum">      70 </span><span class="lineCov">        111 : }</span></a>
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span><span class="lineCov">        109 : DumpTargetDistribution::DumpTargetDistribution(const ActionOptions&amp;ao):</span>
+<span class="lineNum">      73 </span><span class="lineCov">        109 : Action(ao)</span>
+<span class="lineNum">      74 </span>            : {
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span><span class="lineCov">        109 :   std::string targetdist_fname;</span>
+<span class="lineNum">      77 </span><span class="lineCov">        109 :   parse(&quot;TARGETDIST_FILE&quot;,targetdist_fname);</span>
+<span class="lineNum">      78 </span><span class="lineCov">        218 :   std::string log_targetdist_fname;</span>
+<span class="lineNum">      79 </span><span class="lineCov">        109 :   parse(&quot;LOG_TARGETDIST_FILE&quot;,log_targetdist_fname);</span>
+<span class="lineNum">      80 </span><span class="lineCov">        109 :   if(targetdist_fname==log_targetdist_fname){</span>
+<span class="lineNum">      81 </span><span class="lineNoCov">          0 :     plumed_merror(&quot;error in DUMP_TARGET_DISTRIBUTION: TARGETDIST_FILE and LOG_TARGETDIST_FILE cannot be the same&quot;);</span>
+<span class="lineNum">      82 </span>            :   }
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span><span class="lineCov">        218 :   std::vector&lt;unsigned int&gt; grid_bins;</span>
+<span class="lineNum">      85 </span><span class="lineCov">        109 :   parseVector(&quot;GRID_BINS&quot;,grid_bins);</span>
+<span class="lineNum">      86 </span><span class="lineCov">        109 :   unsigned int nargs = grid_bins.size();</span>
+<span class="lineNum">      87 </span>            : 
+<span class="lineNum">      88 </span><span class="lineCov">        218 :   std::vector&lt;std::string&gt; grid_min(nargs);</span>
+<span class="lineNum">      89 </span><span class="lineCov">        109 :   parseVector(&quot;GRID_MIN&quot;,grid_min);</span>
+<span class="lineNum">      90 </span><span class="lineCov">        218 :   std::vector&lt;std::string&gt; grid_max(nargs);</span>
+<span class="lineNum">      91 </span><span class="lineCov">        109 :   parseVector(&quot;GRID_MAX&quot;,grid_max);</span>
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span><span class="lineCov">        218 :   std::vector&lt;std::string&gt; grid_periodicity(nargs);</span>
+<span class="lineNum">      94 </span><span class="lineCov">        109 :   parseVector(&quot;GRID_PERIODICITY&quot;,grid_periodicity);</span>
+<span class="lineNum">      95 </span><span class="lineCov">        109 :   if(grid_periodicity.size()==0){grid_periodicity.assign(nargs,&quot;NO&quot;);}</span>
+<span class="lineNum">      96 </span>            : 
+<span class="lineNum">      97 </span><span class="lineCov">        218 :   std::string fmt_grids=&quot;%14.9f&quot;;</span>
+<span class="lineNum">      98 </span><span class="lineCov">        109 :   parse(&quot;FMT_GRIDS&quot;,fmt_grids);</span>
+<span class="lineNum">      99 </span>            : 
+<span class="lineNum">     100 </span><span class="lineCov">        109 :   bool do_1d_proj = false;</span>
+<span class="lineNum">     101 </span><span class="lineCov">        109 :   parseFlag(&quot;DO_1D_PROJECTIONS&quot;,do_1d_proj);</span>
+<span class="lineNum">     102 </span><span class="lineCov">        109 :   if(do_1d_proj &amp;&amp; nargs==1){</span>
+<span class="lineNum">     103 </span><span class="lineNoCov">          0 :     plumed_merror(&quot;doesn't make sense to use the DO_1D_PROJECTIONS keyword for a one-dimensional distribution&quot;);</span>
+<span class="lineNum">     104 </span>            :   }
+<span class="lineNum">     105 </span>            : 
+<span class="lineNum">     106 </span><span class="lineCov">        109 :   plumed_massert(grid_min.size()==nargs,&quot;mismatch between number of values given for grid parameters&quot;);</span>
+<span class="lineNum">     107 </span><span class="lineCov">        109 :   plumed_massert(grid_max.size()==nargs,&quot;mismatch between number of values given for grid parameters&quot;);</span>
+<span class="lineNum">     108 </span><span class="lineCov">        109 :   plumed_massert(grid_periodicity.size()==nargs,&quot;mismatch between number of values given for grid parameters&quot;);</span>
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span><span class="lineCov">        218 :   std::string targetdist_keyword;</span>
+<span class="lineNum">     111 </span><span class="lineCov">        109 :   parse(&quot;TARGET_DISTRIBUTION&quot;,targetdist_keyword);</span>
+<span class="lineNum">     112 </span><span class="lineCov">        109 :   checkRead();</span>
+<span class="lineNum">     113 </span>            :   //
+<span class="lineNum">     114 </span><span class="lineCov">        218 :   std::vector&lt;Value*&gt; arguments(nargs);</span>
+<span class="lineNum">     115 </span><span class="lineCov">        256 :   for(unsigned int i=0; i &lt; nargs; i++) {</span>
+<span class="lineNum">     116 </span><span class="lineCov">        147 :     std::string is; Tools::convert(i+1,is);</span>
+<span class="lineNum">     117 </span><span class="lineCov">        147 :     if(nargs==1){is=&quot;&quot;;}</span>
+<span class="lineNum">     118 </span><span class="lineCov">        147 :     arguments[i]= new Value(NULL,&quot;arg&quot;+is,false);</span>
+<span class="lineNum">     119 </span><span class="lineCov">        147 :     if(grid_periodicity[i]==&quot;YES&quot;){</span>
+<span class="lineNum">     120 </span><span class="lineCov">         11 :       arguments[i]-&gt;setDomain(grid_min[i],grid_max[i]);</span>
+<span class="lineNum">     121 </span>            :     }
+<span class="lineNum">     122 </span><span class="lineCov">        136 :     else if(grid_periodicity[i]==&quot;NO&quot;){</span>
+<span class="lineNum">     123 </span><span class="lineCov">        136 :       arguments[i]-&gt;setNotPeriodic();</span>
+<span class="lineNum">     124 </span>            :     }
+<span class="lineNum">     125 </span>            :     else{
+<span class="lineNum">     126 </span><span class="lineNoCov">          0 :       plumed_merror(&quot;wrong value given in GRID_PERIODICITY, either specfiy YES or NO&quot;);</span>
+<span class="lineNum">     127 </span>            :     }
+<span class="lineNum">     128 </span><span class="lineCov">        147 :   }</span>
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span><span class="lineCov">        218 :   std::vector&lt;std::string&gt; words = Tools::getWords(targetdist_keyword);</span>
+<span class="lineNum">     131 </span><span class="lineCov">        109 :   TargetDistribution* targetdist_pntr = targetDistributionRegister().create(words);</span>
+<span class="lineNum">     132 </span><span class="lineCov">        109 :   if(targetdist_pntr-&gt;isDynamic()){</span>
+<span class="lineNum">     133 </span><span class="lineNoCov">          0 :     plumed_merror(&quot;DUMP_TARGET_DISTRIBUTION only works for static target distributions&quot;);</span>
+<span class="lineNum">     134 </span>            :   }
+<span class="lineNum">     135 </span><span class="lineCov">        109 :   targetdist_pntr-&gt;setupGrids(arguments,grid_min,grid_max,grid_bins);</span>
+<span class="lineNum">     136 </span><span class="lineCov">        109 :   targetdist_pntr-&gt;update();</span>
+<span class="lineNum">     137 </span><span class="lineCov">        109 :   Grid* targetdist_grid_pntr = targetdist_pntr-&gt;getTargetDistGridPntr();</span>
+<span class="lineNum">     138 </span><span class="lineCov">        109 :   Grid* log_targetdist_grid_pntr = targetdist_pntr-&gt;getLogTargetDistGridPntr();</span>
+<span class="lineNum">     139 </span>            : 
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span><span class="lineCov">        109 :   double sum_grid = TargetDistribution::integrateGrid(targetdist_grid_pntr);</span>
+<span class="lineNum">     142 </span><span class="lineCov">        109 :   log.printf(&quot;  target distribution integrated over the grid: %16.12f\n&quot;,sum_grid);</span>
+<span class="lineNum">     143 </span><span class="lineCov">        109 :   log.printf(&quot;                                                (%30.16e)\n&quot;,sum_grid);</span>
+<span class="lineNum">     144 </span>            :   //
+<span class="lineNum">     145 </span><span class="lineCov">        218 :   OFile ofile;</span>
+<span class="lineNum">     146 </span><span class="lineCov">        109 :   ofile.link(*this);</span>
+<span class="lineNum">     147 </span><span class="lineCov">        109 :   ofile.enforceBackup();</span>
+<span class="lineNum">     148 </span><span class="lineCov">        109 :   ofile.open(targetdist_fname);</span>
+<span class="lineNum">     149 </span><span class="lineCov">        109 :   targetdist_grid_pntr-&gt;setOutputFmt(fmt_grids);</span>
+<span class="lineNum">     150 </span><span class="lineCov">        109 :   targetdist_grid_pntr-&gt;writeToFile(ofile);</span>
+<span class="lineNum">     151 </span><span class="lineCov">        109 :   ofile.close();</span>
+<span class="lineNum">     152 </span><span class="lineCov">        109 :   if(log_targetdist_fname.size()&gt;0){</span>
+<span class="lineNum">     153 </span><span class="lineCov">         23 :     OFile ofile2;</span>
+<span class="lineNum">     154 </span><span class="lineCov">         23 :     ofile2.link(*this);</span>
+<span class="lineNum">     155 </span><span class="lineCov">         23 :     ofile2.enforceBackup();</span>
+<span class="lineNum">     156 </span><span class="lineCov">         23 :     ofile2.open(log_targetdist_fname);</span>
+<span class="lineNum">     157 </span><span class="lineCov">         23 :     log_targetdist_grid_pntr-&gt;setOutputFmt(fmt_grids);</span>
+<span class="lineNum">     158 </span><span class="lineCov">         23 :     log_targetdist_grid_pntr-&gt;writeToFile(ofile2);</span>
+<span class="lineNum">     159 </span><span class="lineCov">         23 :     ofile2.close();</span>
+<span class="lineNum">     160 </span>            :   }
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span><span class="lineCov">        109 :   if(do_1d_proj){</span>
+<span class="lineNum">     163 </span><span class="lineCov">         12 :     for(unsigned int i=0; i&lt;nargs; i++){</span>
+<span class="lineNum">     164 </span><span class="lineCov">          8 :       std::vector&lt;std::string&gt; arg1d(1);</span>
+<span class="lineNum">     165 </span><span class="lineCov">          8 :       arg1d[0] = arguments[i]-&gt;getName();</span>
+<span class="lineNum">     166 </span><span class="lineCov">         16 :       Grid marginal_grid = targetdist_pntr-&gt;getMarginal(arg1d);</span>
+<span class="lineNum">     167 </span>            :       //
+<span class="lineNum">     168 </span><span class="lineCov">         16 :       std::string suffix;</span>
+<span class="lineNum">     169 </span><span class="lineCov">          8 :       Tools::convert(i+1,suffix);</span>
+<span class="lineNum">     170 </span><span class="lineCov">          8 :       suffix = &quot;proj-&quot; + suffix;</span>
+<span class="lineNum">     171 </span><span class="lineCov">         16 :       std::string marginal_fname = FileBase::appendSuffix(targetdist_fname,&quot;.&quot;+suffix);</span>
+<span class="lineNum">     172 </span>            :       //
+<span class="lineNum">     173 </span><span class="lineCov">         16 :       OFile ofile3;</span>
+<span class="lineNum">     174 </span><span class="lineCov">          8 :       ofile3.link(*this);</span>
+<span class="lineNum">     175 </span><span class="lineCov">          8 :       ofile3.enforceBackup();</span>
+<span class="lineNum">     176 </span><span class="lineCov">          8 :       ofile3.open(marginal_fname);</span>
+<span class="lineNum">     177 </span><span class="lineCov">          8 :       marginal_grid.setOutputFmt(fmt_grids);</span>
+<span class="lineNum">     178 </span><span class="lineCov">          8 :       marginal_grid.writeToFile(ofile3);</span>
+<span class="lineNum">     179 </span><span class="lineCov">          8 :     }</span>
+<span class="lineNum">     180 </span>            :   }
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span>            :   //
+<span class="lineNum">     183 </span><span class="lineCov">        109 :   delete targetdist_pntr;</span>
+<span class="lineNum">     184 </span><span class="lineCov">        256 :   for(unsigned int i=0; i &lt; nargs; i++) {</span>
+<span class="lineNum">     185 </span><span class="lineCov">        147 :     delete arguments[i];</span>
+<span class="lineNum">     186 </span>            :   }
+<span class="lineNum">     187 </span><span class="lineCov">        218 :   arguments.clear();</span>
+<span class="lineNum">     188 </span>            : 
+<span class="lineNum">     189 </span>            : 
+<span class="lineNum">     190 </span><span class="lineCov">        109 : }</span>
+<span class="lineNum">     191 </span>            : 
+<span class="lineNum">     192 </span>            : 
+<span class="lineNum">     193 </span>            : 
+<span class="lineNum">     194 </span>            : 
+<a name="195"><span class="lineNum">     195 </span>            : </a>
+<span class="lineNum">     196 </span>            : }
+<span class="lineNum">     197 </span><span class="lineCov">       4014 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

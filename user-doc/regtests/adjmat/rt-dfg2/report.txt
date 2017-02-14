@@ -1,0 +1,10 @@
+Tue Feb 14 08:48:52 UTC 2017
+Running regtest in /home/travis/build/ves-code/plumed2-ves/regtest/adjmat/rt-dfg2
+++ Test type: driver
+++ Arguments: --plumed plumed.dat --ixyz traj.xyz --length-units A --box 28.66,28.66,28.66
+++ Processors: 2
+WARNING using plumed from /home/travis/opt/lib/plumed
+/home/travis/build/ves-code/plumed2-ves/regtest/adjmat/rt-dfg2/tmp
+Checking for adjmat
+Run driver
+Done. Here is the error file:
